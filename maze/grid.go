@@ -31,6 +31,7 @@ type Grid struct {
 	colorBackground color.RGBA
 	colorWall       color.RGBA
 	input           *Input
+	puck            *Puck
 }
 
 // NewGrid create a Grid object
@@ -83,6 +84,8 @@ func NewGrid(w, h int) *Grid {
 	InitTile()
 
 	g.CreateNextLevel()
+
+	g.puck = NewPuck(g.randomTile())
 
 	g.input = NewInput()
 
@@ -140,6 +143,12 @@ func (g *Grid) carve() {
 	t.recursiveBacktracker()
 }
 
+func (g *Grid) orphan() {
+	for _, t := range g.tiles {
+		t.parent = nil
+	}
+}
+
 // CreateNextLevel resets game data and moves the puzzle to the next level
 func (g *Grid) CreateNextLevel() {
 	for _, t := range g.tiles {
@@ -186,8 +195,11 @@ func (g *Grid) Update() error {
 		t := g.findTileAt(pt)
 		if t != nil {
 			println("input on tile", t.X, t.Y)
+			g.puck.ThrowBallTo(t)
 		}
 	}
+
+	g.puck.Update()
 
 	return nil
 }
@@ -200,6 +212,8 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	for _, t := range g.tiles {
 		t.Draw(screen)
 	}
+
+	g.puck.Draw(screen)
 
 	if DebugMode {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("%d,%d grid, tile size %d", TilesAcross, TilesDown, TileSize))

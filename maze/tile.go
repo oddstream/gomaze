@@ -62,7 +62,10 @@ type Tile struct {
 	// members that may change
 	tileImage *ebiten.Image
 	walls     uint
-	visited   bool
+
+	// volatile members
+	visited bool
+	parent  *Tile
 }
 
 // NewTile creates a new Tile object and returns a pointer to it
@@ -117,6 +120,13 @@ func (t *Tile) recursiveBacktracker() {
 			tn.recursiveBacktracker()
 		}
 	}
+}
+
+// Position of this tile (top left origin) in screen coords
+func (t *Tile) Position() (float64, float64) {
+	// Tile.Layout() may not have been called yet
+	return float64(LeftMargin + t.X*TileSize), float64(TopMargin + t.Y*TileSize)
+	// return t.homeX, t.homeY
 }
 
 // Layout the tile
