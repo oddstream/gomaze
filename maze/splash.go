@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"image"
 	"log"
+	"math"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,6 +21,7 @@ type Splash struct {
 	logoImage   *ebiten.Image
 	circlePos   image.Point
 	logoPos     image.Point
+	skew        float64
 }
 
 // NewSplash creates and initializes a Splash/GameState object
@@ -79,6 +81,12 @@ func (s *Splash) Update() error {
 		os.Exit(0)
 	}
 
+	if s.skew < 90 {
+		s.skew++
+	} else {
+		GSM.Switch(NewMenu())
+	}
+
 	return nil
 }
 
@@ -86,12 +94,15 @@ func (s *Splash) Update() error {
 func (s *Splash) Draw(screen *ebiten.Image) {
 	screen.Fill(colorBackground)
 
+	skewRadians := s.skew * math.Pi / 180
+
 	{
 		op := &ebiten.DrawImageOptions{}
 		sx, sy := s.circleImage.Size()
 		sx, sy = sx/2, sy/2
 		op.GeoM.Translate(float64(-sx), float64(-sy))
 		op.GeoM.Scale(0.5, 0.5)
+		op.GeoM.Skew(skewRadians, skewRadians)
 		op.GeoM.Translate(float64(sx), float64(sy))
 
 		op.GeoM.Translate(float64(s.circlePos.X), float64(s.circlePos.Y))
@@ -103,9 +114,11 @@ func (s *Splash) Draw(screen *ebiten.Image) {
 		sx, sy = sx/2, sy/2
 		op.GeoM.Translate(float64(-sx), float64(-sy))
 		op.GeoM.Scale(0.5, 0.5)
+		op.GeoM.Skew(skewRadians, skewRadians)
 		op.GeoM.Translate(float64(sx), float64(sy))
 
 		op.GeoM.Translate(float64(s.logoPos.X), float64(s.logoPos.Y))
+
 		screen.DrawImage(s.logoImage, op)
 	}
 }
