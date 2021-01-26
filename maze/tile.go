@@ -7,7 +7,6 @@ import (
 	"image/color"
 	"log"
 	"math/rand"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -54,22 +53,22 @@ func InitTile() {
 
 // Tile object describes a tile
 type Tile struct {
-	G     *Grid
-	X, Y  int
-	edges [4]*Tile
+	// members that do not change until a new grid is created
+	G            *Grid
+	X, Y         int
+	homeX, homeY float64 // position of tile
+	edges        [4]*Tile
 
+	// members that may change
 	tileImage *ebiten.Image
 	walls     uint
-	color     color.RGBA
-
-	visited      bool
-	homeX, homeY float64 // position of tile
+	visited   bool
 }
 
 // NewTile creates a new Tile object and returns a pointer to it
 // all new tiles start with all four walls before they are carved later
 func NewTile(g *Grid, x, y int) *Tile {
-	t := &Tile{G: g, X: x, Y: y, walls: MASK, color: colorUnsectioned}
+	t := &Tile{G: g, X: x, Y: y, walls: MASK}
 	// homeX, homeY, offsetX, offsetY will be (re)set by Layout()
 	return t
 }
@@ -84,9 +83,9 @@ func (t *Tile) SetImage() {
 
 // Reset prepares a Tile for a new level by resetting just gameplay data, not structural data
 func (t *Tile) Reset() {
+	t.tileImage = nil
 	t.walls = MASK
 	t.visited = false
-	t.color = colorUnsectioned //BasicColors["Black"]
 }
 
 // Rect gives the x,y screen coords of the tile's top left and bottom right corners
@@ -105,9 +104,9 @@ func (t *Tile) removeWall(d int) {
 }
 
 func (t *Tile) recursiveBacktracker() {
-	dirs := [4]int{0, 1, 2, 3}
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(dirs), func(i, j int) { dirs[i], dirs[j] = dirs[j], dirs[i] })
+	// dirs := [4]int{0, 1, 2, 3}
+	// rand.Shuffle(len(dirs), func(i, j int) { dirs[i], dirs[j] = dirs[j], dirs[i] })
+	dirs := rand.Perm(4)
 	for d := 0; d < 4; d++ {
 		dir := dirs[d]
 		tn := t.edges[dir]
@@ -139,16 +138,11 @@ func (t *Tile) debugText(screen *ebiten.Image, str string) {
 	tx := int(x) + (TileSize-w)/2
 	ty := int(y) + (TileSize-h)/2 + h
 	var c color.Color = BasicColors["Black"]
-	// if t.IsComplete() {
-	// 	c = BasicColors["Fushia"]
-	// } else {
-	// 	c = BasicColors["Purple"]
-	// }
 	// ebitenutil.DrawRect(screen, float64(tx), float64(ty), float64(w), float64(h), c)
 	text.Draw(screen, str, Acme.small, tx, ty, c)
 }
 
-// Draw handles rendering of Tile object
+// Draw renders a Tile object
 func (t *Tile) Draw(screen *ebiten.Image) {
 
 	// scale, point translation, rotate, object translation
@@ -157,13 +151,12 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 
 	// Reset RGB (not Alpha) forcibly
 	// tilesheet already has black shapes
-	if t.color != BasicColors["Black"] {
+	{
 		// reducing alpha leaves the endcaps doubled
 		op.ColorM.Scale(0, 0, 0, 1)
-		// op.ColorM.Scale(0, 0, 0, 1)
-		r := float64(t.color.R) / 0xff
-		g := float64(t.color.G) / 0xff
-		b := float64(t.color.B) / 0xff
+		r := float64(t.G.colorWall.R) / 0xff
+		g := float64(t.G.colorWall.G) / 0xff
+		b := float64(t.G.colorWall.B) / 0xff
 		op.ColorM.Translate(r, g, b, 0)
 	}
 
@@ -189,8 +182,5 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 				BasicColors["Black"])
 		}
 	}
-	// t.debugText(gridImage, fmt.Sprint(t.state))
-	// t.debugText(gridImage, fmt.Sprintf("%04b", t.coins))
-	// t.debugText(screen, fmt.Sprintf("%v,%v", t.currDegrees, t.targDegrees))
-	// t.debugText(screen, fmt.Sprintf("%v", t.bitsConnected(t.coins)))
+	// t.debugText(gridImage, fmt.Sprintf("%04b", t.walls))
 }

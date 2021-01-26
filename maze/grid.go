@@ -29,7 +29,8 @@ type Grid struct {
 	palette         Palette
 	colors          []*color.RGBA // a slice of pointers to colors for the tiles, one color per section
 	colorBackground color.RGBA
-	stroke          *Stroke
+	colorWall       color.RGBA
+	input           *Input
 }
 
 // NewGrid create a Grid object
@@ -48,11 +49,11 @@ func NewGrid(w, h int) *Grid {
 		TilesAcross, TilesDown = screenWidth/TileSize, screenHeight/TileSize
 	} else {
 		possibleW := screenWidth / (w + 1) // add 1 to create margin for endcaps
-		possibleW /= 20
-		possibleW *= 20
+		possibleW /= 10
+		possibleW *= 10
 		possibleH := screenHeight / (h + 1)
-		possibleH /= 20
-		possibleH *= 20
+		possibleH /= 10
+		possibleH *= 10
 		// golang gotcha there isn't a vanilla math.MinInt()
 		if possibleW < possibleH {
 			TileSize = possibleW
@@ -82,6 +83,8 @@ func NewGrid(w, h int) *Grid {
 	InitTile()
 
 	g.CreateNextLevel()
+
+	g.input = NewInput()
 
 	return g
 }
@@ -144,9 +147,11 @@ func (g *Grid) CreateNextLevel() {
 	}
 
 	rand.Seed(262118)
+	// rand.Seed(time.Now().UnixNano())
 
 	g.palette = Palettes[rand.Int()%len(Palettes)]
 	g.colorBackground = CalcBackgroundColor(g.palette)
+	g.colorWall = ExtendedColors[g.palette[0]]
 
 	g.carve()
 
@@ -174,6 +179,14 @@ func (g *Grid) Update() error {
 
 	for _, t := range g.tiles {
 		t.Update()
+	}
+
+	pt := g.input.Update()
+	if pt.X != 0 && pt.Y != 0 {
+		t := g.findTileAt(pt)
+		if t != nil {
+			println("input on tile", t.X, t.Y)
+		}
 	}
 
 	return nil

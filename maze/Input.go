@@ -123,7 +123,7 @@ func NewInput() *Input {
 }
 
 // Update the state of the Input object
-func (i *Input) Update() {
+func (i *Input) Update() image.Point {
 	x, y := 0, 0
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 		x, y = ebiten.CursorPosition()
@@ -135,4 +135,5 @@ func (i *Input) Update() {
 		}
 	}
 	i.pt = image.Point{X: x, Y: y}
+	return i.pt
 }

@@ -39,7 +39,7 @@ func NewMenu() *Menu {
 		NewTextButton("EASY", Acme.large, func() { GSM.Switch(NewGrid(6, 5)) }),
 		NewTextButton("NORMAL", Acme.large, func() { GSM.Switch(NewGrid(0, 0)) }),
 		NewTextButton("HARD", Acme.large, func() { GSM.Switch(NewGrid(0, 0)) }),
-		NewTextButton("HARDEST", Acme.large, func() { GSM.Switch(NewGrid(14, 7)) }),
+		NewTextButton("HARDEST", Acme.large, func() { GSM.Switch(NewGrid(28, 14)) }),
 	}
 
 	return s
