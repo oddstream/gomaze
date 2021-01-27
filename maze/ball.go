@@ -3,8 +3,6 @@
 package maze
 
 import (
-	"math"
-
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -15,6 +13,9 @@ type Ball struct {
 	targ *Tile // Tile we have been thrown to
 
 	ballImage *ebiten.Image
+
+	srcX, srcY, dstX, dstY float64 // positions for lerp
+	lerpstep               float64
 
 	x, y float64
 }
@@ -38,6 +39,9 @@ func NewBall(start *Tile) *Ball {
 // ThrowTo a target tile
 func (b *Ball) ThrowTo(t *Tile) {
 	b.targ = t
+	b.srcX, b.srcY = b.tile.Position()
+	b.dstX, b.dstY = b.targ.Position()
+	b.lerpstep = 0.05
 }
 
 // Tile getter for ball's location
@@ -48,14 +52,15 @@ func (b *Ball) ThrowTo(t *Tile) {
 // Update the state/position of the Ball
 func (b *Ball) Update() error {
 	// println("tile=", b.tile, "targ=", b.targ)
-	if b.tile != b.targ {
-		dx, dy := b.targ.Position()
-		// println("ball moving from", b.x, b.y, "to", dx, dy)
-		b.x = lerp(b.x, dx, 0.1)
-		b.y = lerp(b.y, dy, 0.1)
-		if math.Abs(dx-b.x) < float64(TileSize/4) && math.Abs(dy-b.y) < float64(TileSize/4) {
+	if b.targ != nil && b.tile != b.targ {
+		if b.lerpstep >= 1 {
 			b.tile = b.targ
+			b.targ = nil
 			b.x, b.y = b.tile.Position()
+		} else {
+			b.x = smoothstep(b.srcX, b.dstX, b.lerpstep)
+			b.y = smoothstep(b.srcY, b.dstY, b.lerpstep)
+			b.lerpstep += 0.05
 		}
 	}
 	return nil

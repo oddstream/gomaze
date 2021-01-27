@@ -23,8 +23,11 @@ type PuckState int
 type Puck struct {
 	state PuckState
 
-	tile *Tile // tile we are sitting on
-	home *Tile // tile we started on
+	tile                   *Tile   // tile we are sitting on
+	home                   *Tile   // tile we started on
+	dest                   *Tile   // tile we are lerping to
+	srcX, srcY, dstX, dstY float64 // positions for lerp
+	lerpstep               float64
 
 	puckImage *ebiten.Image
 
@@ -55,6 +58,13 @@ func NewPuck(start *Tile) *Puck {
 func (p *Puck) ThrowBallTo(targ *Tile) {
 	p.ball.ThrowTo(targ)
 
+	// if puck is lerping, stop it
+	if p.dest != nil {
+		p.tile = p.dest
+		p.x, p.y = p.tile.Position()
+		p.dest = nil
+	}
+
 	found := false
 	q := []*Tile{p.tile}
 	p.tile.parent = p.tile
@@ -75,7 +85,7 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 			}
 			tn := t.Neighbour(d)
 			if tn == nil {
-				continue
+				log.Fatal("open unwalled edge found in Puck BFS")
 			}
 			if tn.parent == nil {
 				tn.parent = t
@@ -95,32 +105,6 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 // 	return p.ball.Tile()
 // }
 
-/*
-function Util.BFS(tStart, tDst)
-  assert(tStart)
-  assert(tDst)
-  tStart.got:iterator(function(t) t.parent = nil end)
-  local q = {tStart}        -- push onto queue
-  tStart.parent = tStart   -- mark as itself
-  while #q > 0 do
-    local t = table.remove(q, 1)
-    assert(t)
-    if t == tDst then
-      return
-    end
-    for dir = 1, 4 do
-      local tn = t:neighbour(dir)
-      if tn and (not t:isWall(dir)) and (tn.parent == nil) then
-        tn.parent = t
-        q[#q+1] = tn
-        -- table.insert(q, tn) -- push to end of q
-      end
-    end
-  end
-  assert(false, 'BFS not found')
-end
-*/
-
 // Update the state/position of the Puck
 func (p *Puck) Update() error {
 
@@ -131,20 +115,34 @@ func (p *Puck) Update() error {
 		p.tile.marked = false
 	}
 
-	// if any of the neighbours are marked, move there
-	for d := 0; d < 4; d++ {
-		if p.tile.IsWall(d) {
-			continue
+	if p.dest == nil {
+		// if any of the neighbours are marked, move there
+		for d := 0; d < 4; d++ {
+			if p.tile.IsWall(d) {
+				continue
+			}
+			tn := p.tile.Neighbour(d)
+			if tn == nil {
+				log.Fatal("unwalled edge found in Puck Update")
+			}
+			if tn.marked {
+				p.dest = tn
+				p.srcX, p.srcY = p.tile.Position()
+				p.dstX, p.dstY = p.dest.Position()
+				p.lerpstep = 0.1
+				break
+			}
 		}
-		tn := p.tile.Neighbour(d)
-		if tn == nil {
-			continue
-		}
-		if tn.marked {
-			p.tile = tn
+	} else {
+		if p.lerpstep >= 1 {
+			p.tile = p.dest
 			p.tile.marked = false
 			p.x, p.y = p.tile.Position()
-			break
+			p.dest = nil
+		} else {
+			p.x = lerp(p.srcX, p.dstX, p.lerpstep)
+			p.y = lerp(p.srcY, p.dstY, p.lerpstep)
+			p.lerpstep += 0.1
 		}
 	}
 

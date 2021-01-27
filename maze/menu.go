@@ -38,8 +38,7 @@ func NewMenu() *Menu {
 		NewLabel("MAZE", Acme.large),
 		NewTextButton("EASY", Acme.large, func() { GSM.Switch(NewGrid(6, 5)) }),
 		NewTextButton("NORMAL", Acme.large, func() { GSM.Switch(NewGrid(0, 0)) }),
-		NewTextButton("HARD", Acme.large, func() { GSM.Switch(NewGrid(0, 0)) }),
-		NewTextButton("HARDEST", Acme.large, func() { GSM.Switch(NewGrid(28, 14)) }),
+		NewTextButton("HARD", Acme.large, func() { GSM.Switch(NewGrid(28, 14)) }),
 	}
 
 	return s
@@ -50,7 +49,7 @@ func (s *Menu) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 	xCenter := outsideWidth / 2
 	// create 6 vertical slots for 5 widgets
-	yPlaces := [6]int{} // golang gotcha: can't use len(s.widgets)
+	yPlaces := [5]int{} // golang gotcha: can't use len(s.widgets)
 	for i := 0; i < len(yPlaces); i++ {
 		yPlaces[i] = (outsideHeight / len(yPlaces)) * i
 	}
