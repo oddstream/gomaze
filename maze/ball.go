@@ -24,8 +24,8 @@ func NewBall(start *Tile) *Ball {
 	b := &Ball{tile: start, targ: start}
 
 	dc := gg.NewContext(TileSize, TileSize)
-	dc.SetRGB(0, 0, 0)
-	dc.DrawCircle(float64(TileSize/2), float64(TileSize/2), float64(TileSize/6))
+	dc.SetRGB(1, 1, 0)
+	dc.DrawCircle(float64(TileSize/2), float64(TileSize/2), float64(TileSize/8))
 	dc.Fill()
 	dc.Stroke()
 	b.ballImage = ebiten.NewImageFromImage(dc.Image())
@@ -53,7 +53,7 @@ func (b *Ball) Update() error {
 		// println("ball moving from", b.x, b.y, "to", dx, dy)
 		b.x = lerp(b.x, dx, 0.1)
 		b.y = lerp(b.y, dy, 0.1)
-		if math.Abs(dx-b.x) < 1.0 && math.Abs(dy-b.y) < 1.0 {
+		if math.Abs(dx-b.x) < float64(TileSize/4) && math.Abs(dy-b.y) < float64(TileSize/4) {
 			b.tile = b.targ
 			b.x, b.y = b.tile.Position()
 		}

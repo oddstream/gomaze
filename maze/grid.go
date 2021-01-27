@@ -26,8 +26,6 @@ var (
 // Grid is an object representing the grid of tiles
 type Grid struct {
 	tiles           []*Tile // a slice (not array!) of pointers to Tile objects
-	palette         Palette
-	colors          []*color.RGBA // a slice of pointers to colors for the tiles, one color per section
 	colorBackground color.RGBA
 	colorWall       color.RGBA
 	input           *Input
@@ -143,9 +141,10 @@ func (g *Grid) carve() {
 	t.recursiveBacktracker()
 }
 
-func (g *Grid) orphan() {
+// AllTiles applies a func to all tiles
+func (g *Grid) AllTiles(fn func(*Tile)) {
 	for _, t := range g.tiles {
-		t.parent = nil
+		fn(t)
 	}
 }
 
@@ -158,9 +157,9 @@ func (g *Grid) CreateNextLevel() {
 	rand.Seed(262118)
 	// rand.Seed(time.Now().UnixNano())
 
-	g.palette = Palettes[rand.Int()%len(Palettes)]
-	g.colorBackground = CalcBackgroundColor(g.palette)
-	g.colorWall = ExtendedColors[g.palette[0]]
+	palette := Palettes[rand.Int()%len(Palettes)]
+	g.colorBackground = CalcBackgroundColor(palette)
+	g.colorWall = ExtendedColors[palette[0]]
 
 	g.carve()
 
@@ -195,6 +194,7 @@ func (g *Grid) Update() error {
 		t := g.findTileAt(pt)
 		if t != nil {
 			println("input on tile", t.X, t.Y)
+			g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
 			g.puck.ThrowBallTo(t)
 		}
 	}

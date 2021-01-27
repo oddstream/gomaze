@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 
+	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -25,6 +26,7 @@ const (
 
 var (
 	tileImageLibrary map[uint]*ebiten.Image
+	dotImage         *ebiten.Image
 	overSize         float64
 	halfTileSize     float64
 	bits             = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
@@ -49,12 +51,21 @@ func InitTile() {
 	actualTileSize, _ := tileImageLibrary[0].Size()
 	halfTileSize = float64(actualTileSize) / 2
 	overSize = float64((actualTileSize - TileSize) / 2)
+
+	{
+		dc := gg.NewContext(actualTileSize, actualTileSize)
+		dc.SetRGB(0, 0, 0)
+		dc.DrawCircle(float64(actualTileSize/2), float64(actualTileSize/2), 3)
+		dc.Fill()
+		dc.Stroke()
+		dotImage = ebiten.NewImageFromImage(dc.Image())
+	}
 }
 
 // Tile object describes a tile
 type Tile struct {
 	// members that do not change until a new grid is created
-	G            *Grid
+	G            *Grid // backlink to Grid; TODO think about using var instead
 	X, Y         int
 	homeX, homeY float64 // position of tile
 	edges        [4]*Tile
@@ -65,6 +76,7 @@ type Tile struct {
 
 	// volatile members
 	visited bool
+	marked  bool
 	parent  *Tile
 }
 
@@ -100,6 +112,17 @@ func (t *Tile) Rect() (x0 int, y0 int, x1 int, y1 int) {
 	return // using named return parameters
 }
 
+// Neighbour returns the neighbouring tile in that direction
+func (t *Tile) Neighbour(d int) *Tile {
+	return t.edges[d]
+}
+
+// IsWall returns true if there is a wall in that direction
+func (t *Tile) IsWall(d int) bool {
+	bit := bits[d]
+	return t.walls&bit == bit
+}
+
 func (t *Tile) removeWall(d int) {
 	var mask uint
 	mask = MASK & (^bits[d])
@@ -112,7 +135,7 @@ func (t *Tile) recursiveBacktracker() {
 	dirs := rand.Perm(4)
 	for d := 0; d < 4; d++ {
 		dir := dirs[d]
-		tn := t.edges[dir]
+		tn := t.Neighbour(dir)
 		if tn != nil && tn.visited == false {
 			t.removeWall(dir)
 			tn.removeWall(oppdirs[dir])
@@ -128,6 +151,11 @@ func (t *Tile) Position() (float64, float64) {
 	return float64(LeftMargin + t.X*TileSize), float64(TopMargin + t.Y*TileSize)
 	// return t.homeX, t.homeY
 }
+
+// AllTiles applies a func to all tiles
+// func (t *Tile) AllTiles(fn func(*Tile)) {
+// 	t.G.AllTiles(fn)
+// }
 
 // Layout the tile
 func (t *Tile) Layout() {
@@ -162,7 +190,6 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	// Reset RGB (not Alpha) forcibly
 	// tilesheet already has black shapes
 	{
-		// reducing alpha leaves the endcaps doubled
 		op.ColorM.Scale(0, 0, 0, 1)
 		r := float64(t.G.colorWall.R) / 0xff
 		g := float64(t.G.colorWall.G) / 0xff
@@ -173,6 +200,10 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(t.homeX-overSize, t.homeY-overSize)
 
 	screen.DrawImage(t.tileImage, op)
+
+	if t.marked {
+		screen.DrawImage(dotImage, op)
+	}
 
 	if DebugMode {
 		if t.Y != 0 {

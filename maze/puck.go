@@ -3,6 +3,8 @@
 package maze
 
 import (
+	"log"
+
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -50,8 +52,42 @@ func NewPuck(start *Tile) *Puck {
 }
 
 // ThrowBallTo a target tile
-func (p *Puck) ThrowBallTo(t *Tile) {
-	p.ball.ThrowTo(t)
+func (p *Puck) ThrowBallTo(targ *Tile) {
+	p.ball.ThrowTo(targ)
+
+	found := false
+	q := []*Tile{p.tile}
+	p.tile.parent = p.tile
+	for len(q) > 0 {
+		t := q[0]
+		q = q[1:] // take first tile off front of queue
+		// println("pop", t.X, t.Y, "len now", len(q))
+		if t == targ {
+			found = true
+			for path := t; path != p.tile; path = path.parent {
+				path.marked = true
+			}
+			break
+		}
+		for d := 0; d < 4; d++ {
+			if t.IsWall(d) {
+				continue
+			}
+			tn := t.Neighbour(d)
+			if tn == nil {
+				continue
+			}
+			if tn.parent == nil {
+				tn.parent = t
+				q = append(q, tn)
+				// println("push", tn.X, tn.Y, "len now", len(q))
+			}
+		}
+	}
+	if !found {
+		log.Fatal("tile not found")
+	}
+	println("tile found")
 }
 
 // BallTile getter for location of puck's ball
@@ -87,10 +123,31 @@ end
 
 // Update the state/position of the Puck
 func (p *Puck) Update() error {
-	p.ball.Update()
-	if p.tile != p.ball.tile {
 
+	p.ball.Update()
+
+	if p.tile.marked {
+		println("unmarking")
+		p.tile.marked = false
 	}
+
+	// if any of the neighbours are marked, move there
+	for d := 0; d < 4; d++ {
+		if p.tile.IsWall(d) {
+			continue
+		}
+		tn := p.tile.Neighbour(d)
+		if tn == nil {
+			continue
+		}
+		if tn.marked {
+			p.tile = tn
+			p.tile.marked = false
+			p.x, p.y = p.tile.Position()
+			break
+		}
+	}
+
 	return nil
 }
 
