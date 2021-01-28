@@ -65,10 +65,10 @@ func InitTile() {
 // Tile object describes a tile
 type Tile struct {
 	// members that do not change until a new grid is created
-	G            *Grid // backlink to Grid; TODO think about using var instead
-	X, Y         int
-	homeX, homeY float64 // position of tile
-	edges        [4]*Tile
+	G              *Grid // backlink to Grid; TODO think about using var instead
+	X, Y           int
+	worldX, worldY float64 // position of tile
+	edges          [4]*Tile
 
 	// members that may change
 	tileImage *ebiten.Image
@@ -84,7 +84,7 @@ type Tile struct {
 // all new tiles start with all four walls before they are carved later
 func NewTile(g *Grid, x, y int) *Tile {
 	t := &Tile{G: g, X: x, Y: y, walls: MASK}
-	// homeX, homeY, offsetX, offsetY will be (re)set by Layout()
+	// worldX, worldY will be (re)set by Layout()
 	return t
 }
 
@@ -105,8 +105,8 @@ func (t *Tile) Reset() {
 
 // Rect gives the x,y screen coords of the tile's top left and bottom right corners
 func (t *Tile) Rect() (x0 int, y0 int, x1 int, y1 int) {
-	x0 = t.X*TileSize + LeftMargin
-	y0 = t.Y*TileSize + TopMargin
+	x0 = t.X * TileSize
+	y0 = t.Y * TileSize
 	x1 = x0 + TileSize
 	y1 = y0 + TileSize
 	return // using named return parameters
@@ -129,6 +129,31 @@ func (t *Tile) removeWall(d int) {
 	t.walls &= mask
 }
 
+func (t *Tile) removeAllWalls() {
+	for d := 0; d < 4; d++ {
+		t.removeWall(d)
+		tn := t.Neighbour(d)
+		tn.removeWall(oppdirs[d])
+	}
+}
+
+func (t *Tile) wallCount() int {
+	count := 0
+	for i := 0; i < len(bits); i++ {
+		if t.walls&bits[i] == bits[i] {
+			count++
+		}
+	}
+	return count
+}
+
+func (t *Tile) fillCulDeSac() {
+	if t.wallCount() == 3 {
+		t.walls = MASK
+		// TODO set Neighbour bits
+	}
+}
+
 func (t *Tile) recursiveBacktracker() {
 	// dirs := [4]int{0, 1, 2, 3}
 	// rand.Shuffle(len(dirs), func(i, j int) { dirs[i], dirs[j] = dirs[j], dirs[i] })
@@ -148,8 +173,8 @@ func (t *Tile) recursiveBacktracker() {
 // Position of this tile (top left origin) in screen coords
 func (t *Tile) Position() (float64, float64) {
 	// Tile.Layout() may not have been called yet
-	return float64(LeftMargin + t.X*TileSize), float64(TopMargin + t.Y*TileSize)
-	// return t.homeX, t.homeY
+	return float64(t.X * TileSize), float64(t.Y * TileSize)
+	// return t.worldX, t.worldY
 }
 
 // AllTiles applies a func to all tiles
@@ -159,8 +184,8 @@ func (t *Tile) Position() (float64, float64) {
 
 // Layout the tile
 func (t *Tile) Layout() {
-	t.homeX = float64(LeftMargin + t.X*TileSize)
-	t.homeY = float64(TopMargin + t.Y*TileSize)
+	t.worldX = float64(t.X * TileSize)
+	t.worldY = float64(t.Y * TileSize)
 }
 
 // Update the tile state (transitions, user input)
@@ -172,7 +197,7 @@ func (t *Tile) debugText(screen *ebiten.Image, str string) {
 	bound, _ := font.BoundString(Acme.small, str)
 	w := (bound.Max.X - bound.Min.X).Ceil()
 	h := (bound.Max.Y - bound.Min.Y).Ceil()
-	x, y := t.homeX-overSize, t.homeY-overSize
+	x, y := t.worldX-overSize, t.worldY-overSize
 	tx := int(x) + (TileSize-w)/2
 	ty := int(y) + (TileSize-h)/2 + h
 	var c color.Color = BasicColors["Black"]
@@ -197,7 +222,8 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 		op.ColorM.Translate(r, g, b, 0)
 	}
 
-	op.GeoM.Translate(t.homeX-overSize, t.homeY-overSize)
+	op.GeoM.Translate(t.worldX-overSize, t.worldY-overSize)
+	op.GeoM.Translate(CameraX, CameraY)
 
 	screen.DrawImage(t.tileImage, op)
 
@@ -208,18 +234,18 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	if DebugMode {
 		if t.Y != 0 {
 			ebitenutil.DrawLine(screen,
-				t.homeX,
-				t.homeY,
-				t.homeX+float64(TileSize),
-				t.homeY,
+				CameraX+t.worldX,
+				CameraY+t.worldY,
+				CameraX+t.worldX+float64(TileSize),
+				CameraY+t.worldY,
 				BasicColors["Black"])
 		}
 		if t.X != 0 {
 			ebitenutil.DrawLine(screen,
-				t.homeX,
-				t.homeY,
-				t.homeX,
-				t.homeY+float64(TileSize),
+				CameraX+t.worldX,
+				CameraY+t.worldY,
+				CameraX+t.worldX,
+				CameraY+t.worldY+float64(TileSize),
 				BasicColors["Black"])
 		}
 	}

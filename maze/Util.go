@@ -31,7 +31,7 @@ func SMOOTHERSTEP(x float64) float64 {
 }
 
 func smoothstep(A float64, B float64, v float64) float64 {
-	v = SMOOTHERSTEP(v)
+	v = SMOOTHSTEP(v)
 	X := (B * v) + (A * (1.0 - v))
 	return X
 }

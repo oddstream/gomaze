@@ -18,9 +18,9 @@ import (
 var (
 	TilesAcross int
 	TilesDown   int
-	LeftMargin  int
-	TopMargin   int
 	TileSize    int
+	CameraX     float64
+	CameraY     float64
 )
 
 // Grid is an object representing the grid of tiles
@@ -61,8 +61,6 @@ func NewGrid(w, h int) *Grid {
 		}
 		TilesAcross, TilesDown = w, h
 	}
-	LeftMargin = (screenWidth - (TilesAcross * TileSize)) / 2
-	TopMargin = (screenHeight - (TilesDown * TileSize)) / 2
 
 	g := &Grid{tiles: make([]*Tile, TilesAcross*TilesDown)}
 	for i := range g.tiles {
@@ -136,9 +134,25 @@ func (g *Grid) randomTile() *Tile {
 	return g.tiles[i]
 }
 
+func (g *Grid) createRooms() {
+
+	for x := 2; x < 6; x++ {
+		for y := 2; y < (TilesDown - 3); y++ {
+			t := g.findTile(x, y)
+			t.removeAllWalls()
+		}
+	}
+}
+
 func (g *Grid) carve() {
 	t := g.randomTile()
 	t.recursiveBacktracker()
+}
+
+func (g *Grid) fillCulDeSacs() {
+	for _, t := range g.tiles {
+		t.fillCulDeSac()
+	}
 }
 
 // AllTiles applies a func to all tiles
@@ -161,6 +175,7 @@ func (g *Grid) CreateNextLevel() {
 	g.colorBackground = CalcBackgroundColor(palette)
 	g.colorWall = ExtendedColors[palette[0]]
 
+	// g.createRooms()
 	g.carve()
 
 	for _, t := range g.tiles {
@@ -170,11 +185,10 @@ func (g *Grid) CreateNextLevel() {
 
 // Layout implements ebiten.Game's Layout.
 func (g *Grid) Layout(outsideWidth, outsideHeight int) (int, int) {
-	LeftMargin = (outsideWidth - (TilesAcross * TileSize)) / 2
-	TopMargin = (outsideHeight - (TilesDown * TileSize)) / 2
 	for _, t := range g.tiles {
 		t.Layout()
 	}
+	// g.puck.Layout(outsideWidth, outsideHeight)
 	return outsideWidth, outsideHeight
 }
 
@@ -191,6 +205,8 @@ func (g *Grid) Update() error {
 
 	pt := g.input.Update()
 	if pt.X != 0 && pt.Y != 0 {
+		pt.X -= int(CameraX)
+		pt.Y -= int(CameraY)
 		t := g.findTileAt(pt)
 		if t != nil {
 			println("input on tile", t.X, t.Y)
@@ -216,6 +232,6 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	g.puck.Draw(screen)
 
 	if DebugMode {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("%d,%d grid, tile size %d", TilesAcross, TilesDown, TileSize))
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("%d,%d grid, %v,%v camera, tile size %d", TilesAcross, TilesDown, CameraX, CameraY, TileSize))
 	}
 }

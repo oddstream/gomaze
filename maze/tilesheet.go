@@ -90,7 +90,9 @@ func makeTile(walls uint, tileSize int) image.Image {
 		dc.LineTo(e, s)
 		dc.LineTo(w, s)
 		dc.ClosePath()
+		dc.FillPreserve()
 
+		// dc.DrawRoundedRectangle(w, n, float64(tileSize), float64(tileSize), lineWidth)
 	default:
 		log.Fatal("makeTile called with wrong bits", walls)
 	}

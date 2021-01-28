@@ -73,8 +73,7 @@ var Palettes = []Palette{
 }
 
 var (
-	colorBackground  = color.RGBA{R: 0x50, G: 0x50, B: 0x50, A: 0xff}
-	colorUnsectioned = color.RGBA{R: 0x0, G: 0x0, B: 0x0, A: 0x0}
+	colorBackground = color.RGBA{R: 0x50, G: 0x50, B: 0x50, A: 0xff}
 )
 
 // CalcBackgroundColor returns the average of all the colors in a palette, divided by two

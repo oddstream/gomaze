@@ -24,21 +24,20 @@ type Puck struct {
 	state PuckState
 
 	tile                   *Tile   // tile we are sitting on
-	home                   *Tile   // tile we started on
 	dest                   *Tile   // tile we are lerping to
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
 
 	puckImage *ebiten.Image
 
-	x, y float64
+	worldX, worldY float64
 
 	ball *Ball
 }
 
 // NewPuck creates a new Puck object
 func NewPuck(start *Tile) *Puck {
-	p := &Puck{home: start, tile: start, state: StatePuckSettled}
+	p := &Puck{tile: start, state: StatePuckSettled}
 
 	dc := gg.NewContext(TileSize, TileSize)
 	dc.SetRGB(1, 1, 0) // Yellow
@@ -47,11 +46,20 @@ func NewPuck(start *Tile) *Puck {
 	dc.Stroke()
 	p.puckImage = ebiten.NewImageFromImage(dc.Image())
 
-	p.x, p.y = p.tile.Position()
+	p.worldX, p.worldY = p.tile.Position()
+	p.SetCamera()
 
 	p.ball = NewBall(start)
 
 	return p
+}
+
+// SetCamera so that puck is at the center of the screen
+func (p *Puck) SetCamera() {
+	w, h := ebiten.WindowSize()
+	sx, sy := p.puckImage.Size()
+	CameraX = float64(w/2-sx/2) - p.worldX
+	CameraY = float64(h/2-sy/2) - p.worldY
 }
 
 // ThrowBallTo a target tile
@@ -61,7 +69,7 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 	// if puck is lerping, stop it
 	if p.dest != nil {
 		p.tile = p.dest
-		p.x, p.y = p.tile.Position()
+		p.worldX, p.worldY = p.tile.Position()
 		p.dest = nil
 	}
 
@@ -137,14 +145,15 @@ func (p *Puck) Update() error {
 		if p.lerpstep >= 1 {
 			p.tile = p.dest
 			p.tile.marked = false
-			p.x, p.y = p.tile.Position()
+			p.worldX, p.worldY = p.tile.Position()
 			p.dest = nil
 		} else {
-			p.x = lerp(p.srcX, p.dstX, p.lerpstep)
-			p.y = lerp(p.srcY, p.dstY, p.lerpstep)
+			p.worldX = lerp(p.srcX, p.dstX, p.lerpstep)
+			p.worldY = lerp(p.srcY, p.dstY, p.lerpstep)
 			p.lerpstep += 0.1
 		}
 	}
+	p.SetCamera()
 
 	return nil
 }
@@ -152,7 +161,8 @@ func (p *Puck) Update() error {
 // Draw the Puck
 func (p *Puck) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(p.x, p.y)
+	op.GeoM.Translate(p.worldX, p.worldY)
+	op.GeoM.Translate(CameraX, CameraY)
 	screen.DrawImage(p.puckImage, op)
 	p.ball.Draw(screen)
 }

@@ -10,19 +10,19 @@ import (
 // Ball defines the yellow blob/player avatar
 type Ball struct {
 	tile *Tile // Tile we are sitting on
-	targ *Tile // Tile we have been thrown to
+	dest *Tile // Tile we have been thrown to
 
 	ballImage *ebiten.Image
 
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
 
-	x, y float64
+	worldX, worldY float64
 }
 
 // NewBall creates a new Ball object
 func NewBall(start *Tile) *Ball {
-	b := &Ball{tile: start, targ: start}
+	b := &Ball{tile: start}
 
 	dc := gg.NewContext(TileSize, TileSize)
 	dc.SetRGB(1, 1, 0)
@@ -31,16 +31,16 @@ func NewBall(start *Tile) *Ball {
 	dc.Stroke()
 	b.ballImage = ebiten.NewImageFromImage(dc.Image())
 
-	b.x, b.y = b.tile.Position()
+	b.worldX, b.worldY = b.tile.Position()
 
 	return b
 }
 
 // ThrowTo a target tile
-func (b *Ball) ThrowTo(t *Tile) {
-	b.targ = t
+func (b *Ball) ThrowTo(to *Tile) {
+	b.dest = to
 	b.srcX, b.srcY = b.tile.Position()
-	b.dstX, b.dstY = b.targ.Position()
+	b.dstX, b.dstY = b.dest.Position()
 	b.lerpstep = 0.05
 }
 
@@ -52,14 +52,14 @@ func (b *Ball) ThrowTo(t *Tile) {
 // Update the state/position of the Ball
 func (b *Ball) Update() error {
 	// println("tile=", b.tile, "targ=", b.targ)
-	if b.targ != nil && b.tile != b.targ {
+	if b.dest != nil {
 		if b.lerpstep >= 1 {
-			b.tile = b.targ
-			b.targ = nil
-			b.x, b.y = b.tile.Position()
+			b.tile = b.dest
+			b.dest = nil
+			b.worldX, b.worldY = b.tile.Position()
 		} else {
-			b.x = smoothstep(b.srcX, b.dstX, b.lerpstep)
-			b.y = smoothstep(b.srcY, b.dstY, b.lerpstep)
+			b.worldX = smoothstep(b.srcX, b.dstX, b.lerpstep)
+			b.worldY = smoothstep(b.srcY, b.dstY, b.lerpstep)
 			b.lerpstep += 0.05
 		}
 	}
@@ -69,6 +69,7 @@ func (b *Ball) Update() error {
 // Draw the Ball
 func (b *Ball) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(b.x, b.y)
+	op.GeoM.Translate(b.worldX, b.worldY)
+	op.GeoM.Translate(CameraX, CameraY)
 	screen.DrawImage(b.ballImage, op)
 }
