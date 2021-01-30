@@ -10,7 +10,6 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
 )
@@ -231,23 +230,24 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 		screen.DrawImage(dotImage, op)
 	}
 
-	if DebugMode {
-		if t.Y != 0 {
-			ebitenutil.DrawLine(screen,
-				CameraX+t.worldX,
-				CameraY+t.worldY,
-				CameraX+t.worldX+float64(TileSize),
-				CameraY+t.worldY,
-				BasicColors["Black"])
-		}
-		if t.X != 0 {
-			ebitenutil.DrawLine(screen,
-				CameraX+t.worldX,
-				CameraY+t.worldY,
-				CameraX+t.worldX,
-				CameraY+t.worldY+float64(TileSize),
-				BasicColors["Black"])
-		}
-	}
+	// if DebugMode {
+	// ebitenutil.DrawLine is really slow
+	// 	if t.Y != 0 {
+	// 		ebitenutil.DrawLine(screen,
+	// 			CameraX+t.worldX,
+	// 			CameraY+t.worldY,
+	// 			CameraX+t.worldX+float64(TileSize),
+	// 			CameraY+t.worldY,
+	// 			BasicColors["Black"])
+	// 	}
+	// 	if t.X != 0 {
+	// 		ebitenutil.DrawLine(screen,
+	// 			CameraX+t.worldX,
+	// 			CameraY+t.worldY,
+	// 			CameraX+t.worldX,
+	// 			CameraY+t.worldY+float64(TileSize),
+	// 			BasicColors["Black"])
+	// 	}
+	// }
 	// t.debugText(gridImage, fmt.Sprintf("%04b", t.walls))
 }

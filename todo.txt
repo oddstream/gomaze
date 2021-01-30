@@ -1,26 +1,4 @@
-+ Puck stays central and the grid of tiles moves (and ball, dots) move around it
-
-You need to have every object positioned relative to the world instead of the screen. Your camera should also have its own world coordinates so it can be drawn at a relative position in the world. It may also be convenient to have your camera follow an object, so wherever the object is, the camera just uses its coordinates. Typically the camera's coordinates will position it from the upper left corner. This means the camera would have a world position of approximately (0,24) in the picture.
-
-As for actually drawing the objects the camera can "see", you must draw all objects relative to the camera's world coordinates. To compute an object's screen position relative to the camera, simply do:
-
-int screenX, screenY; //screen position of the object being drawn
-
-screenX = object.x-camera.x;
-screenY = object.y-camera.y;
-
-... could do this with a transform
-you can just compute a translation matrix based on camera coors and move objects via cam matrix, without changing their actual positions
-
-	retire top, left margins
-	tiles start at 0,0
-	objects (tiles, walls, balls, dot) have world coords
-	
-	puck is always center of screen
-	puck is based on it's home tile + lerp offset
-		which gives x,y origin
-	allows for good sized tiles, and lots of them
-	allow for title, status bars
++ title, status bars
 
 + Rooms
 http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/

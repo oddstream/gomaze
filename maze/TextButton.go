@@ -28,9 +28,9 @@ func NewTextButton(str string, btnFont font.Face, actionFn func()) *TextButton {
 // SetPosition sets the position of this widget in screen coords
 func (tb *TextButton) SetPosition(x, y int) {
 	tb.center = image.Point{X: x, Y: y}
-	bound, _ := font.BoundString(tb.font, tb.text)
-	tb.width = (bound.Max.X - bound.Min.X).Ceil()
-	tb.height = (bound.Max.Y - bound.Min.Y).Ceil()
+	bound := text.BoundString(tb.font, tb.text)
+	tb.width = bound.Max.X - bound.Min.X
+	tb.height = bound.Max.Y - bound.Min.Y
 	tb.origin = image.Point{X: tb.center.X - (tb.width / 2), Y: tb.center.Y - (tb.height / 2)}
 }
 
@@ -71,7 +71,7 @@ func (tb *TextButton) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	{
 		op.GeoM.Translate(-float64(tb.width)/2.0, -float64(tb.height)/2.0)
-		op.GeoM.Scale(1.1, 1.5)
+		op.GeoM.Scale(2, 2)
 		op.GeoM.Translate(float64(tb.width)/2.0, float64(tb.height)/2.0)
 	}
 	op.GeoM.Translate(float64(tb.origin.X), float64(tb.origin.Y))

@@ -7,7 +7,6 @@ import (
 	"image"
 	"image/color"
 	"math/rand"
-	"runtime"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -35,32 +34,16 @@ type Grid struct {
 // NewGrid create a Grid object
 func NewGrid(w, h int) *Grid {
 
-	var screenWidth, screenHeight int
+	// var screenWidth, screenHeight int
 
-	if runtime.GOARCH == "wasm" {
-		screenWidth, screenHeight = WindowWidth, WindowHeight
-	} else {
-		screenWidth, screenHeight = ebiten.WindowSize()
-	}
+	// if runtime.GOARCH == "wasm" {
+	// 	screenWidth, screenHeight = WindowWidth, WindowHeight
+	// } else {
+	// 	screenWidth, screenHeight = ebiten.WindowSize()
+	// }
 
-	if w == 0 || h == 0 {
-		TileSize = 100
-		TilesAcross, TilesDown = screenWidth/TileSize, screenHeight/TileSize
-	} else {
-		possibleW := screenWidth / (w + 1) // add 1 to create margin for endcaps
-		possibleW /= 10
-		possibleW *= 10
-		possibleH := screenHeight / (h + 1)
-		possibleH /= 10
-		possibleH *= 10
-		// golang gotcha there isn't a vanilla math.MinInt()
-		if possibleW < possibleH {
-			TileSize = possibleW
-		} else {
-			TileSize = possibleH
-		}
-		TilesAcross, TilesDown = w, h
-	}
+	TileSize = 80
+	TilesAcross, TilesDown = w, h
 
 	g := &Grid{tiles: make([]*Tile, TilesAcross*TilesDown)}
 	for i := range g.tiles {
