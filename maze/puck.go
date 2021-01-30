@@ -137,7 +137,7 @@ func (p *Puck) Update() error {
 				p.dest = tn
 				p.srcX, p.srcY = p.tile.Position()
 				p.dstX, p.dstY = p.dest.Position()
-				p.lerpstep = 0.1
+				p.lerpstep = 0.05
 				break
 			}
 		}
@@ -150,7 +150,7 @@ func (p *Puck) Update() error {
 		} else {
 			p.worldX = lerp(p.srcX, p.dstX, p.lerpstep)
 			p.worldY = lerp(p.srcY, p.dstY, p.lerpstep)
-			p.lerpstep += 0.1
+			p.lerpstep += 0.05
 		}
 	}
 	p.SetCamera()

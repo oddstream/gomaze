@@ -17,7 +17,7 @@ type Ghost struct {
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
 
-	ghostImage *ebiten.Image
+	ghostImages [4]*ebiten.Image
 
 	worldX, worldY float64
 }
@@ -49,12 +49,9 @@ var polyCoords = []float64{
 	-12, 0,
 }
 
-// NewGhost creates a new Ghost object
-func NewGhost(start *Tile) *Ghost {
-	g := &Ghost{tile: start}
-
+func drawGhost(dir int) *ebiten.Image {
 	dc := gg.NewContext(TileSize, TileSize)
-	dc.SetRGB(0, 1, 1)
+	dc.SetRGB(0.8, 0.8, 0.9)
 	scale := float64(TileSize / 2)
 	dc.MoveTo(polyCoords[0]*2+scale, polyCoords[1]*2+scale)
 	for i := 2; i < len(polyCoords); {
@@ -66,8 +63,38 @@ func NewGhost(start *Tile) *Ghost {
 	}
 	dc.ClosePath()
 	dc.Fill()
+	dc.SetRGB(1, 1, 1)
+	dc.DrawCircle(scale-10, scale-2, 8)
+	dc.DrawCircle(scale+10, scale-2, 8)
+	dc.Fill()
+	dc.SetRGB(0, 0, 0)
+	switch dir {
+	case 0:
+		dc.DrawCircle(scale-10, scale-4, 4)
+		dc.DrawCircle(scale+10, scale-4, 4)
+	case 1:
+		dc.DrawCircle(scale-10+2, scale-2, 4)
+		dc.DrawCircle(scale+10+2, scale-2, 4)
+	case 2:
+		dc.DrawCircle(scale-10, scale+2, 4)
+		dc.DrawCircle(scale+10, scale+2, 4)
+	case 3:
+		dc.DrawCircle(scale-10-2, scale-2, 4)
+		dc.DrawCircle(scale+10-2, scale-2, 4)
+	}
+	dc.Fill()
 	dc.Stroke()
-	g.ghostImage = ebiten.NewImageFromImage(dc.Image())
+	return ebiten.NewImageFromImage(dc.Image())
+}
+
+// NewGhost creates a new Ghost object
+func NewGhost(start *Tile) *Ghost {
+	g := &Ghost{tile: start}
+
+	for d := 0; d < 4; d++ {
+		g.ghostImages[d] = drawGhost(d)
+	}
+
 	g.facing = 0
 	g.worldX, g.worldY = g.tile.Position()
 
@@ -119,5 +146,5 @@ func (g *Ghost) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(g.worldX, g.worldY)
 	op.GeoM.Translate(CameraX, CameraY)
-	screen.DrawImage(g.ghostImage, op)
+	screen.DrawImage(g.ghostImages[g.facing], op)
 }

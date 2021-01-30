@@ -65,12 +65,6 @@ func NewGrid(w, h int) *Grid {
 
 	g.CreateNextLevel()
 
-	g.puck = NewPuck(g.randomTile())
-
-	for i := 0; i < 4; i++ {
-		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
-	}
-
 	g.input = NewInput()
 
 	return g
@@ -198,11 +192,15 @@ func (g *Grid) CreateNextLevel() {
 	g.colorBackground = CalcBackgroundColor(palette)
 	g.colorWall = ExtendedColors[palette[0]]
 
-	// g.createRooms()
+	g.createRooms()
 
 	g.carve()
 
-	// g.fillCulDeSacs()
+	g.puck = NewPuck(g.randomTile())
+
+	for i := 0; i < 4; i++ {
+		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
+	}
 }
 
 // Layout implements ebiten.Game's Layout.
