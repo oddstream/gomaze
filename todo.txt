@@ -1,8 +1,12 @@
 + title, status bars
++ toast
++ popup menu when clicking on stationary puck
 
-+ Rooms
++ Rooms/open spaces
 http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
 https://github.com/munificent/hauberk/blob/db360d9efa714efb6d937c31953ef849c7394a39/lib/src/content/dungeon.dart
+
+- don't fill in cul-de-sacs, corners become ugly
 
 + yorg.io
 	set base on a tile

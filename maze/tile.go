@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"math/bits"
 	"math/rand"
 
 	"github.com/fogleman/gg"
@@ -28,8 +29,8 @@ var (
 	dotImage         *ebiten.Image
 	overSize         float64
 	halfTileSize     float64
-	bits             = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
-	opps             = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
+	wallbits         = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
+	wallopps         = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
 	oppdirs          = [4]int{2, 3, 0, 1}
 )
 
@@ -70,8 +71,7 @@ type Tile struct {
 	edges          [4]*Tile
 
 	// members that may change
-	tileImage *ebiten.Image
-	walls     uint
+	walls uint
 
 	// volatile members
 	visited bool
@@ -87,17 +87,8 @@ func NewTile(g *Grid, x, y int) *Tile {
 	return t
 }
 
-// SetImage is used when all walls are carved
-func (t *Tile) SetImage() {
-	t.tileImage = tileImageLibrary[t.walls]
-	if t.tileImage == nil {
-		log.Fatal("tileImage is nil when walls == ", t.walls)
-	}
-}
-
 // Reset prepares a Tile for a new level by resetting just gameplay data, not structural data
 func (t *Tile) Reset() {
-	t.tileImage = nil
 	t.walls = MASK
 	t.visited = false
 }
@@ -118,38 +109,58 @@ func (t *Tile) Neighbour(d int) *Tile {
 
 // IsWall returns true if there is a wall in that direction
 func (t *Tile) IsWall(d int) bool {
-	bit := bits[d]
+	bit := wallbits[d]
 	return t.walls&bit == bit
 }
 
+func (t *Tile) addWall(d int) {
+	t.walls |= wallbits[d]
+	if !t.IsWall(d) {
+		println("no wall in direction", d)
+	}
+	if tn := t.Neighbour(d); tn != nil {
+		tn.walls |= wallopps[d]
+	}
+}
+
 func (t *Tile) removeWall(d int) {
-	var mask uint
-	mask = MASK & (^bits[d])
-	t.walls &= mask
+	if tn := t.Neighbour(d); tn != nil {
+		var mask uint
+		mask = MASK & (^wallbits[d])
+		t.walls &= mask
+		mask = MASK & (^wallopps[d])
+		tn.walls &= mask
+	}
 }
 
 func (t *Tile) removeAllWalls() {
 	for d := 0; d < 4; d++ {
 		t.removeWall(d)
-		tn := t.Neighbour(d)
-		tn.removeWall(oppdirs[d])
 	}
 }
 
 func (t *Tile) wallCount() int {
-	count := 0
-	for i := 0; i < len(bits); i++ {
-		if t.walls&bits[i] == bits[i] {
-			count++
-		}
-	}
-	return count
+	return bits.OnesCount(t.walls)
+	// count := 0
+	// for i := 0; i < len(bits); i++ {
+	// 	if t.walls&bits[i] == bits[i] {
+	// 		count++
+	// 	}
+	// }
+	// return count
 }
 
 func (t *Tile) fillCulDeSac() {
 	if t.wallCount() == 3 {
-		t.walls = MASK
-		// TODO set Neighbour bits
+		for d := 0; d < 4; d++ {
+			if t.walls&wallbits[d] == 0 {
+				t.walls = MASK
+				if tn := t.Neighbour(d); tn != nil {
+					tn.walls |= wallopps[d]
+				}
+				break
+			}
+		}
 	}
 }
 
@@ -162,7 +173,6 @@ func (t *Tile) recursiveBacktracker() {
 		tn := t.Neighbour(dir)
 		if tn != nil && tn.visited == false {
 			t.removeWall(dir)
-			tn.removeWall(oppdirs[dir])
 			tn.visited = true
 			tn.recursiveBacktracker()
 		}
@@ -224,9 +234,11 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(t.worldX-overSize, t.worldY-overSize)
 	op.GeoM.Translate(CameraX, CameraY)
 
-	screen.DrawImage(t.tileImage, op)
+	screen.DrawImage(tileImageLibrary[t.walls], op)
 
 	if t.marked {
+		op.ColorM.Scale(0, 0, 0, 1)
+		op.ColorM.Translate(1, 1, 0, 0)
 		screen.DrawImage(dotImage, op)
 	}
 

@@ -105,7 +105,7 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 	if !found {
 		log.Fatal("tile not found")
 	}
-	println("tile found")
+	// println("tile found")
 }
 
 // BallTile getter for location of puck's ball

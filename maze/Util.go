@@ -91,3 +91,22 @@ func drawCircle(img *ebiten.Image, x0, y0, r int, c color.Color) {
 		}
 	}
 }
+
+func forward(dir int) int {
+	return dir
+}
+
+func opposite(dir int) int {
+	d := [4]int{2, 3, 0, 1}
+	return d[dir]
+}
+
+func left(dir int) int {
+	d := [4]int{3, 0, 1, 2}
+	return d[dir]
+}
+
+func right(dir int) int {
+	d := [4]int{1, 2, 3, 0}
+	return d[dir]
+}
