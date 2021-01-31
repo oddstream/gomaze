@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"log"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -43,7 +44,7 @@ func NewGrid(w, h int) *Grid {
 	// 	screenWidth, screenHeight = ebiten.WindowSize()
 	// }
 
-	TileSize = 100
+	TileSize = 80
 	TilesAcross, TilesDown = w, h
 
 	g := &Grid{tiles: make([]*Tile, TilesAcross*TilesDown)}
@@ -81,24 +82,24 @@ func (g *Grid) findTile(x, y int) *Tile {
 	// so we can't use i := x + (y * TilesAcross) to find index of tile in slice
 	// except if this func is just used after tiles have been created
 
-	for _, t := range g.tiles {
-		if t.X == x && t.Y == y {
-			return t
-		}
-	}
-	return nil
+	// for _, t := range g.tiles {
+	// 	if t.X == x && t.Y == y {
+	// 		return t
+	// 	}
+	// }
+	// return nil
 
-	// if x < 0 || x >= TilesAcross {
-	// 	return nil
-	// }
-	// if y < 0 || y >= TilesDown {
-	// 	return nil
-	// }
-	// i := x + (y * TilesAcross)
-	// if i < 0 || i > len(g.tiles) {
-	// 	log.Fatal("findTile index out of bounds")
-	// }
-	// return g.tiles[i]
+	if x < 0 || x >= TilesAcross {
+		return nil
+	}
+	if y < 0 || y >= TilesDown {
+		return nil
+	}
+	i := x + (y * TilesAcross)
+	if i < 0 || i > len(g.tiles) {
+		log.Fatal("findTile index out of bounds")
+	}
+	return g.tiles[i]
 }
 
 // findTileAt finds the tile under the mouse click or touch
@@ -196,7 +197,7 @@ func (g *Grid) CreateNextLevel() {
 
 	g.carve()
 
-	g.puck = NewPuck(g.randomTile())
+	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
 
 	for i := 0; i < 4; i++ {
 		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
@@ -215,30 +216,29 @@ func (g *Grid) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update the board state (transitions, user input)
 func (g *Grid) Update() error {
 
+	g.input.Update()
+
 	if inpututil.IsKeyJustReleased(ebiten.KeyBackspace) {
 		GSM.Switch(NewMenu())
 	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyN) {
-		g.puck.tile.removeWall(0)
-	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyE) {
-		g.puck.tile.removeWall(1)
-	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyS) {
-		g.puck.tile.removeWall(2)
-	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyW) {
-		g.puck.tile.removeWall(3)
+
+	switch {
+	case inpututil.IsKeyJustReleased(ebiten.KeyUp):
+		g.puck.tile.toggleWall(0)
+	case inpututil.IsKeyJustReleased(ebiten.KeyRight):
+		g.puck.tile.toggleWall(1)
+	case inpututil.IsKeyJustReleased(ebiten.KeyDown):
+		g.puck.tile.toggleWall(2)
+	case inpututil.IsKeyJustReleased(ebiten.KeyLeft):
+		g.puck.tile.toggleWall(3)
 	}
 
 	for _, t := range g.tiles {
 		t.Update()
 	}
 
-	pt := g.input.Update()
-	if pt.X != 0 && pt.Y != 0 {
-		pt.X -= int(CameraX)
-		pt.Y -= int(CameraY)
+	if g.input.TouchX != 0 && g.input.TouchY != 0 {
+		pt := image.Point{g.input.TouchX - int(CameraX), g.input.TouchY - int(CameraY)}
 		t := g.findTileAt(pt)
 		if t != nil {
 			println("input on tile", t.X, t.Y, t.wallCount())
@@ -273,6 +273,6 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	g.puck.Draw(screen)
 
 	if DebugMode {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("%d,%d grid, %v,%v camera, tile size %d", TilesAcross, TilesDown, CameraX, CameraY, TileSize))
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("%d,%d grid, %v,%v camera, puck at %v,%v", TilesAcross, TilesDown, CameraX, CameraY, g.puck.tile.X, g.puck.tile.Y))
 	}
 }

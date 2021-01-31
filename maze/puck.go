@@ -9,20 +9,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-const (
-	// StatePuckSettled when the Puck is not moving
-	StatePuckSettled = iota
-	// StatePuckMoving when Puck is lerping/chasing it's ball
-	StatePuckMoving
-)
-
-// PuckState of this Puck
-type PuckState int
-
 // Puck defines the yellow blob/player avatar
 type Puck struct {
-	state PuckState
-
 	tile                   *Tile   // tile we are sitting on
 	dest                   *Tile   // tile we are lerping to
 	srcX, srcY, dstX, dstY float64 // positions for lerp
@@ -37,7 +25,7 @@ type Puck struct {
 
 // NewPuck creates a new Puck object
 func NewPuck(start *Tile) *Puck {
-	p := &Puck{tile: start, state: StatePuckSettled}
+	p := &Puck{tile: start}
 
 	dc := gg.NewContext(TileSize, TileSize)
 	dc.SetRGB(1, 1, 0) // Yellow
@@ -64,7 +52,6 @@ func (p *Puck) SetCamera() {
 
 // ThrowBallTo a target tile
 func (p *Puck) ThrowBallTo(targ *Tile) {
-	p.ball.ThrowTo(targ)
 
 	// if puck is lerping, stop it
 	if p.dest != nil {
@@ -102,10 +89,10 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 			}
 		}
 	}
-	if !found {
-		log.Fatal("tile not found")
+
+	if found {
+		p.ball.ThrowTo(targ)
 	}
-	// println("tile found")
 }
 
 // BallTile getter for location of puck's ball

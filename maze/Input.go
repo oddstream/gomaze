@@ -113,7 +113,8 @@ func (s *Stroke) SetDraggingObject(object interface{}) {
 
 // Input records state of mouse and touch
 type Input struct {
-	pt image.Point
+	// pressed        map[ebiten.Key]struct{} // an empty and useless type
+	TouchX, TouchY int
 }
 
 // NewInput Input object constructor
@@ -122,18 +123,32 @@ func NewInput() *Input {
 	return new(Input)
 }
 
+// Pressed returns true of that key has been pressed
+// func (i *Input) Pressed(ebiten.Key) bool {
+// 	_, ok := i.pressed[ebiten.KeyShift]
+// 	return ok
+// }
+
 // Update the state of the Input object
-func (i *Input) Update() image.Point {
-	x, y := 0, 0
+func (i *Input) Update() {
+
+	i.TouchX, i.TouchY = 0, 0
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
-		x, y = ebiten.CursorPosition()
+		i.TouchX, i.TouchY = ebiten.CursorPosition()
 	}
 	ts := inpututil.JustPressedTouchIDs()
 	if ts != nil && len(ts) == 1 {
 		if inpututil.IsTouchJustReleased(ts[0]) {
-			x, y = ebiten.TouchPosition(ts[0])
+			i.TouchX, i.TouchY = ebiten.TouchPosition(ts[0])
 		}
 	}
-	i.pt = image.Point{X: x, Y: y}
-	return i.pt
+
+	// i.pressed = make(map[ebiten.Key]struct{})
+	// for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
+	// 	if ebiten.IsKeyPressed(k) {
+	// 		// if inpututil.IsKeyJustPressed(k) {
+	// 		i.pressed[k] = struct{}{} // an empty and useless value
+	// 	}
+	// }
+
 }

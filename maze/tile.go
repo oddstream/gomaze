@@ -115,9 +115,6 @@ func (t *Tile) IsWall(d int) bool {
 
 func (t *Tile) addWall(d int) {
 	t.walls |= wallbits[d]
-	if !t.IsWall(d) {
-		println("no wall in direction", d)
-	}
 	if tn := t.Neighbour(d); tn != nil {
 		tn.walls |= wallopps[d]
 	}
@@ -130,6 +127,16 @@ func (t *Tile) removeWall(d int) {
 		t.walls &= mask
 		mask = MASK & (^wallopps[d])
 		tn.walls &= mask
+	}
+}
+
+func (t *Tile) toggleWall(d int) {
+	if tn := t.Neighbour(d); tn != nil {
+		if t.IsWall(d) {
+			t.removeWall(d)
+		} else {
+			t.addWall(d)
+		}
 	}
 }
 

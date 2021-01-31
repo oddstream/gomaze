@@ -36,9 +36,9 @@ func NewMenu() *Menu {
 
 	s.widgets = []Widget{
 		NewLabel("MAZE", Acme.large),
-		NewTextButton(" SMALL ", Acme.large, func() { GSM.Switch(NewGrid(5, 5)) }),
-		NewTextButton(" NORMAL ", Acme.large, func() { GSM.Switch(NewGrid(10, 10)) }),
-		NewTextButton(" BIG ", Acme.large, func() { GSM.Switch(NewGrid(50, 50)) }),
+		NewTextButton(" TINY ", Acme.large, func() { GSM.Switch(NewGrid(5, 5)) }),
+		NewTextButton(" NORMAL ", Acme.large, func() { GSM.Switch(NewGrid(11, 11)) }),
+		NewTextButton(" BIG ", Acme.large, func() { GSM.Switch(NewGrid(51, 51)) }),
 	}
 
 	return s
@@ -64,11 +64,11 @@ func (s *Menu) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update updates the current game state.
 func (s *Menu) Update() error {
 
+	s.input.Update()
+
 	if inpututil.IsKeyJustReleased(ebiten.KeyBackspace) {
 		os.Exit(0)
 	}
-
-	s.input.Update()
 
 	for _, w := range s.widgets {
 		if w.Pushed(s.input) {

@@ -52,35 +52,35 @@ var polyCoords = []float64{
 func drawGhost(dir int) *ebiten.Image {
 	dc := gg.NewContext(TileSize, TileSize)
 	dc.SetRGB(0.8, 0.8, 0.9)
-	scale := float64(TileSize / 2)
-	dc.MoveTo(polyCoords[0]*2+scale, polyCoords[1]*2+scale)
+	mid := float64(TileSize / 2)
+	dc.MoveTo(polyCoords[0]*2+mid, polyCoords[1]*2+mid)
 	for i := 2; i < len(polyCoords); {
 		x := polyCoords[i]
 		i++
 		y := polyCoords[i]
 		i++
-		dc.LineTo(x*2+scale, y*2+scale)
+		dc.LineTo(x*2+mid, y*2+mid)
 	}
 	dc.ClosePath()
 	dc.Fill()
 	dc.SetRGB(1, 1, 1)
-	dc.DrawCircle(scale-10, scale-2, 8)
-	dc.DrawCircle(scale+10, scale-2, 8)
+	dc.DrawCircle(mid-10, mid-2, 8)
+	dc.DrawCircle(mid+10, mid-2, 8)
 	dc.Fill()
 	dc.SetRGB(0, 0, 0)
 	switch dir {
 	case 0:
-		dc.DrawCircle(scale-10, scale-4, 4)
-		dc.DrawCircle(scale+10, scale-4, 4)
+		dc.DrawCircle(mid-10, mid-4, 4)
+		dc.DrawCircle(mid+10, mid-4, 4)
 	case 1:
-		dc.DrawCircle(scale-10+2, scale-2, 4)
-		dc.DrawCircle(scale+10+2, scale-2, 4)
+		dc.DrawCircle(mid-10+2, mid-2, 4)
+		dc.DrawCircle(mid+10+2, mid-2, 4)
 	case 2:
-		dc.DrawCircle(scale-10, scale+2, 4)
-		dc.DrawCircle(scale+10, scale+2, 4)
+		dc.DrawCircle(mid-10, mid+2, 4)
+		dc.DrawCircle(mid+10, mid+2, 4)
 	case 3:
-		dc.DrawCircle(scale-10-2, scale-2, 4)
-		dc.DrawCircle(scale+10-2, scale-2, 4)
+		dc.DrawCircle(mid-10-2, mid-2, 4)
+		dc.DrawCircle(mid+10-2, mid-2, 4)
 	}
 	dc.Fill()
 	dc.Stroke()
@@ -107,9 +107,9 @@ func (g *Ghost) Update() error {
 	if g.dest == nil {
 		var dirfuncs [4]func(int) int
 		if rand.Float64() < 0.5 {
-			dirfuncs = [4]func(int) int{left, forward, right, opposite}
+			dirfuncs = [4]func(int) int{left, forward, right, backward}
 		} else {
-			dirfuncs = [4]func(int) int{right, forward, left, opposite}
+			dirfuncs = [4]func(int) int{right, forward, left, backward}
 		}
 		for i := 0; i < 4; i++ {
 			dir := dirfuncs[i](g.facing)

@@ -96,7 +96,7 @@ func forward(dir int) int {
 	return dir
 }
 
-func opposite(dir int) int {
+func backward(dir int) int {
 	d := [4]int{2, 3, 0, 1}
 	return d[dir]
 }

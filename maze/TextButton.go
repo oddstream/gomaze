@@ -45,8 +45,9 @@ func (tb *TextButton) Rect() (x0 int, y0 int, x1 int, y1 int) {
 
 // Pushed returns true if the button has just been pushed
 func (tb *TextButton) Pushed(i *Input) bool {
-	if i.pt.X != 0 && i.pt.Y != 0 {
-		return InRect(i.pt, tb.Rect)
+	if i.TouchX != 0 && i.TouchY != 0 {
+		pt := image.Point{i.TouchX, i.TouchY}
+		return InRect(pt, tb.Rect)
 	}
 	return false
 }
