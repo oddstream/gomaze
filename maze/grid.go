@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"log"
 	"math/rand"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -29,8 +30,6 @@ type Grid struct {
 	colorBackground color.RGBA
 	colorWall       color.RGBA
 	input           *Input
-	puck            *Puck
-	ghosts          []*Ghost
 }
 
 // NewGrid create a Grid object
@@ -49,7 +48,7 @@ func NewGrid(w, h int) *Grid {
 
 	g := &Grid{tiles: make([]*Tile, TilesAcross*TilesDown)}
 	for i := range g.tiles {
-		g.tiles[i] = NewTile(g, i%TilesAcross, i/TilesAcross)
+		g.tiles[i] = NewTile(i%TilesAcross, i/TilesAcross)
 	}
 
 	// link the tiles together to avoid all that tedious 2d array stuff
@@ -186,8 +185,7 @@ func (g *Grid) CreateNextLevel() {
 		t.Reset()
 	}
 
-	rand.Seed(262118)
-	// rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 
 	palette := Palettes[rand.Int()%len(Palettes)]
 	g.colorBackground = CalcBackgroundColor(palette)
@@ -197,10 +195,10 @@ func (g *Grid) CreateNextLevel() {
 
 	g.carve()
 
-	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
+	ThePuck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
 
 	for i := 0; i < 4; i++ {
-		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
+		TheGhosts = append(TheGhosts, NewGhost(g.randomTile()))
 	}
 }
 
@@ -218,19 +216,17 @@ func (g *Grid) Update() error {
 
 	g.input.Update()
 
-	if inpututil.IsKeyJustReleased(ebiten.KeyBackspace) {
-		GSM.Switch(NewMenu())
-	}
-
 	switch {
+	case inpututil.IsKeyJustReleased(ebiten.KeyBackspace):
+		GSM.Switch(NewMenu())
 	case inpututil.IsKeyJustReleased(ebiten.KeyUp):
-		g.puck.tile.toggleWall(0)
+		ThePuck.tile.toggleWall(0)
 	case inpututil.IsKeyJustReleased(ebiten.KeyRight):
-		g.puck.tile.toggleWall(1)
+		ThePuck.tile.toggleWall(1)
 	case inpututil.IsKeyJustReleased(ebiten.KeyDown):
-		g.puck.tile.toggleWall(2)
+		ThePuck.tile.toggleWall(2)
 	case inpututil.IsKeyJustReleased(ebiten.KeyLeft):
-		g.puck.tile.toggleWall(3)
+		ThePuck.tile.toggleWall(3)
 	}
 
 	for _, t := range g.tiles {
@@ -241,18 +237,18 @@ func (g *Grid) Update() error {
 		pt := image.Point{g.input.TouchX - int(CameraX), g.input.TouchY - int(CameraY)}
 		t := g.findTileAt(pt)
 		if t != nil {
-			println("input on tile", t.X, t.Y, t.wallCount())
+			// println("input on tile", t.X, t.Y, t.wallCount())
 			if t.wallCount() < 4 {
 				g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
-				g.puck.ThrowBallTo(t)
+				ThePuck.ThrowBallTo(t)
 			}
 		}
 	}
 
-	for i := 0; i < len(g.ghosts); i++ {
-		g.ghosts[i].Update()
+	for i := 0; i < len(TheGhosts); i++ {
+		TheGhosts[i].Update()
 	}
-	g.puck.Update()
+	ThePuck.Update()
 
 	return nil
 }
@@ -266,13 +262,13 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 		t.Draw(screen)
 	}
 
-	for i := 0; i < len(g.ghosts); i++ {
-		g.ghosts[i].Draw(screen)
+	for i := 0; i < len(TheGhosts); i++ {
+		TheGhosts[i].Draw(screen)
 	}
 
-	g.puck.Draw(screen)
+	ThePuck.Draw(screen)
 
 	if DebugMode {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("%d,%d grid, %v,%v camera, puck at %v,%v", TilesAcross, TilesDown, CameraX, CameraY, g.puck.tile.X, g.puck.tile.Y))
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("grid:%d,%d camera:%v,%v puck:%v,%v", TilesAcross, TilesDown, CameraX, CameraY, ThePuck.tile.X, ThePuck.tile.Y))
 	}
 }

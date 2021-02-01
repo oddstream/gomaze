@@ -36,9 +36,9 @@ func NewMenu() *Menu {
 
 	s.widgets = []Widget{
 		NewLabel("MAZE", Acme.large),
-		NewTextButton(" TINY ", Acme.large, func() { GSM.Switch(NewGrid(5, 5)) }),
-		NewTextButton(" NORMAL ", Acme.large, func() { GSM.Switch(NewGrid(11, 11)) }),
-		NewTextButton(" BIG ", Acme.large, func() { GSM.Switch(NewGrid(51, 51)) }),
+		NewTextButton(" TINY ", Acme.large, func() { TheGrid = NewGrid(5, 5); GSM.Switch(TheGrid) }),
+		NewTextButton(" NORMAL ", Acme.large, func() { TheGrid = NewGrid(11, 11); GSM.Switch(TheGrid) }),
+		NewTextButton(" BIG ", Acme.large, func() { TheGrid = NewGrid(31, 31); GSM.Switch(TheGrid) }),
 	}
 
 	return s

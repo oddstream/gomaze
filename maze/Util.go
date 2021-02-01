@@ -20,18 +20,10 @@ func lerp(v0 float64, v1 float64, t float64) float64 {
 	return (1-t)*v0 + t*v1
 }
 
-// SMOOTHSTEP from http://sol.gfxile.net/interpolation/
-func SMOOTHSTEP(x float64) float64 {
-	return (x) * (x) * (3 - 2*(x))
-}
-
-// SMOOTHERSTEP from http://sol.gfxile.net/interpolation/
-func SMOOTHERSTEP(x float64) float64 {
-	return (x) * (x) * (x) * ((x)*((x)*6-15) + 10)
-}
-
 func smoothstep(A float64, B float64, v float64) float64 {
-	v = SMOOTHSTEP(v)
+	// http://sol.gfxile.net/interpolation/
+	v = (v) * (v) * (3 - 2*(v)) // smoothstep
+	// v = (v) * (v) * (v) * ((v)*((v)*6-15) + 10)	// smootherstep
 	X := (B * v) + (A * (1.0 - v))
 	return X
 }

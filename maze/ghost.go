@@ -101,6 +101,17 @@ func NewGhost(start *Tile) *Ghost {
 	return g
 }
 
+func (g *Ghost) isDirOkay(dir int) bool {
+	if g.tile.IsWall(dir) {
+		return false
+	}
+	// TODO refactor, maybe Grid, Puck should be visible at game.go level
+	if ThePuck.tile == g.tile.Neighbour(dir) {
+		return false
+	}
+	return true
+}
+
 // Update the state/position of the Ghost
 func (g *Ghost) Update() error {
 
@@ -113,7 +124,7 @@ func (g *Ghost) Update() error {
 		}
 		for i := 0; i < 4; i++ {
 			dir := dirfuncs[i](g.facing)
-			if !g.tile.IsWall(dir) {
+			if g.isDirOkay(dir) {
 				g.facing = dir
 				g.dest = g.tile.Neighbour(dir)
 				break

@@ -13,6 +13,12 @@ var (
 	WindowWidth int = 1920 / 2
 	// WindowHeight of main window in pixels
 	WindowHeight int = 1080 / 2
+	// TheGrid points to the Grid currently being played
+	TheGrid *Grid
+	// ThePuck points to the Puck object currently in play
+	ThePuck *Puck
+	// TheGhosts is an array of pointers to the Ghost objects currently in play
+	TheGhosts []*Ghost
 )
 
 // Game represents a game state.

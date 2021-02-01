@@ -65,7 +65,6 @@ func InitTile() {
 // Tile object describes a tile
 type Tile struct {
 	// members that do not change until a new grid is created
-	G              *Grid // backlink to Grid; TODO think about using var instead
 	X, Y           int
 	worldX, worldY float64 // position of tile
 	edges          [4]*Tile
@@ -81,8 +80,8 @@ type Tile struct {
 
 // NewTile creates a new Tile object and returns a pointer to it
 // all new tiles start with all four walls before they are carved later
-func NewTile(g *Grid, x, y int) *Tile {
-	t := &Tile{G: g, X: x, Y: y, walls: MASK}
+func NewTile(x, y int) *Tile {
+	t := &Tile{X: x, Y: y, walls: MASK}
 	// worldX, worldY will be (re)set by Layout()
 	return t
 }
@@ -210,15 +209,16 @@ func (t *Tile) Update() error {
 }
 
 func (t *Tile) debugText(screen *ebiten.Image, str string) {
-	bound, _ := font.BoundString(Acme.small, str)
+	bound, _ := font.BoundString(Acme.large, str)
 	w := (bound.Max.X - bound.Min.X).Ceil()
 	h := (bound.Max.Y - bound.Min.Y).Ceil()
 	x, y := t.worldX-overSize, t.worldY-overSize
 	tx := int(x) + (TileSize-w)/2
 	ty := int(y) + (TileSize-h)/2 + h
-	var c color.Color = BasicColors["Black"]
+	c := color.RGBA{R: 0xff - colorBackground.R, G: 0xff - colorBackground.G, B: 0xff - colorBackground.B, A: 0xff}
+	// var c color.Color = BasicColors["Black"]
 	// ebitenutil.DrawRect(screen, float64(tx), float64(ty), float64(w), float64(h), c)
-	text.Draw(screen, str, Acme.small, tx, ty, c)
+	text.Draw(screen, str, Acme.large, tx, ty, c)
 }
 
 // Draw renders a Tile object
@@ -232,9 +232,9 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	// tilesheet already has black shapes
 	{
 		op.ColorM.Scale(0, 0, 0, 1)
-		r := float64(t.G.colorWall.R) / 0xff
-		g := float64(t.G.colorWall.G) / 0xff
-		b := float64(t.G.colorWall.B) / 0xff
+		r := float64(TheGrid.colorWall.R) / 0xff
+		g := float64(TheGrid.colorWall.G) / 0xff
+		b := float64(TheGrid.colorWall.B) / 0xff
 		op.ColorM.Translate(r, g, b, 0)
 	}
 
