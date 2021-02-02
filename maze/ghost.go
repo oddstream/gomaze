@@ -50,19 +50,23 @@ var polyCoords = []float64{
 }
 
 func drawGhost(dir int) *ebiten.Image {
-	dc := gg.NewContext(TileSize, TileSize)
-	dc.SetRGB(0.8, 0.8, 0.9)
 	mid := float64(TileSize / 2)
-	dc.MoveTo(polyCoords[0]*2+mid, polyCoords[1]*2+mid)
-	for i := 2; i < len(polyCoords); {
-		x := polyCoords[i]
-		i++
-		y := polyCoords[i]
-		i++
-		dc.LineTo(x*2+mid, y*2+mid)
-	}
-	dc.ClosePath()
-	dc.Fill()
+	dc := gg.NewContext(TileSize, TileSize)
+
+	// comment this out to just draw googly eyes, which is kinda fun
+	// dc.SetColor(BasicColors["Silver"])
+	// dc.MoveTo(polyCoords[0]*2+mid, polyCoords[1]*2+mid)
+	// for i := 2; i < len(polyCoords); {
+	// 	x := polyCoords[i]
+	// 	i++
+	// 	y := polyCoords[i]
+	// 	i++
+	// 	dc.LineTo(x*2+mid, y*2+mid)
+	// }
+	// dc.ClosePath()
+	// dc.Fill()
+	// end
+
 	dc.SetRGB(1, 1, 1)
 	dc.DrawCircle(mid-10, mid-2, 8)
 	dc.DrawCircle(mid+10, mid-2, 8)

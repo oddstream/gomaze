@@ -79,6 +79,7 @@ func NewGrid(w, h int) *Grid {
 		}
 		dc := gg.NewContext(TileSize*3, TileSize*3)
 		dc.SetRGBA(float64(g.colorBackground.R/0xff), float64(g.colorBackground.G/0xff), float64(g.colorBackground.B/0xff), 0.5)
+		// dc.SetColor(g.colorBackground)
 		dc.DrawRoundedRectangle(0, 0, float64(TileSize*3), float64(TileSize*3), float64(TileSize/12))
 		dc.Fill()
 		dc.Stroke()
@@ -241,24 +242,24 @@ func (g *Grid) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update the board state (transitions, user input)
 func (g *Grid) Update() error {
 
-	g.input.Update()
-
 	switch {
 	case inpututil.IsKeyJustReleased(ebiten.KeyBackspace):
 		GSM.Switch(NewMenu())
-	case inpututil.IsKeyJustReleased(ebiten.KeyUp):
+	case inpututil.IsKeyJustReleased(ebiten.KeyW):
 		g.puck.tile.toggleWall(0)
-	case inpututil.IsKeyJustReleased(ebiten.KeyRight):
+	case inpututil.IsKeyJustReleased(ebiten.KeyD):
 		g.puck.tile.toggleWall(1)
-	case inpututil.IsKeyJustReleased(ebiten.KeyDown):
+	case inpututil.IsKeyJustReleased(ebiten.KeyS):
 		g.puck.tile.toggleWall(2)
-	case inpututil.IsKeyJustReleased(ebiten.KeyLeft):
+	case inpututil.IsKeyJustReleased(ebiten.KeyA):
 		g.puck.tile.toggleWall(3)
 	}
 
 	for _, t := range g.tiles {
 		t.Update()
 	}
+
+	g.input.Update()
 
 	if g.input.TouchX != 0 && g.input.TouchY != 0 {
 		pt := image.Point{g.input.TouchX - int(CameraX), g.input.TouchY - int(CameraY)}
@@ -272,9 +273,17 @@ func (g *Grid) Update() error {
 		}
 	}
 
-	for i := 0; i < len(g.ghosts); i++ {
-		g.ghosts[i].Update()
+	count := 0
+	for _, gh := range g.ghosts {
+		gh.Update()
+		if gh.tile.pen {
+			count++
+		}
 	}
+	if count == len(g.ghosts) {
+		println("all ghosts penned")
+	}
+
 	g.puck.Update()
 
 	return nil
@@ -296,8 +305,8 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 		t.Draw(screen)
 	}
 
-	for i := 0; i < len(g.ghosts); i++ {
-		g.ghosts[i].Draw(screen)
+	for _, gh := range g.ghosts {
+		gh.Draw(screen)
 	}
 
 	g.puck.Draw(screen)

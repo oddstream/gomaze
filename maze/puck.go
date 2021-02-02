@@ -28,7 +28,7 @@ func NewPuck(start *Tile) *Puck {
 	p := &Puck{tile: start}
 
 	dc := gg.NewContext(TileSize, TileSize)
-	dc.SetRGB(1, 1, 0) // Yellow
+	dc.SetColor(BasicColors["Yellow"])
 	dc.DrawCircle(float64(TileSize/2), float64(TileSize/2), float64(TileSize/3))
 	dc.Fill()
 	dc.Stroke()

@@ -25,7 +25,7 @@ func NewBall(start *Tile) *Ball {
 	b := &Ball{tile: start}
 
 	dc := gg.NewContext(TileSize, TileSize)
-	dc.SetRGB(1, 1, 0)
+	dc.SetColor(BasicColors["Yellow"])
 	dc.DrawCircle(float64(TileSize/2), float64(TileSize/2), float64(TileSize/8))
 	dc.Fill()
 	dc.Stroke()

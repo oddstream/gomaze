@@ -12,29 +12,27 @@ import (
 
 // Label is an object that represents a button
 type Label struct {
-	text           string
-	font           font.Face
-	origin, center image.Point
-	width, height  int
+	text          string
+	font          font.Face
+	origin        image.Point
+	width, height int
 }
 
-// NewLabel creates and returns a new Label object centered at x,y
+// NewLabel creates and returns a new Label object
 func NewLabel(str string, btnFont font.Face) *Label {
 	l := &Label{text: str, font: btnFont}
 	bound, _ := font.BoundString(l.font, l.text)
 	l.width = (bound.Max.X - bound.Min.X).Ceil()
 	l.height = (bound.Max.Y - bound.Min.Y).Ceil()
-	l.origin = image.Point{X: l.center.X - (l.width / 2), Y: l.center.Y - (l.height / 2)}
 	return l
 }
 
 // SetPosition sets the position of this widget in screen coords
 func (l *Label) SetPosition(x, y int) {
-	l.center = image.Point{X: x, Y: y}
 	bound, _ := font.BoundString(l.font, l.text)
 	l.width = (bound.Max.X - bound.Min.X).Ceil()
 	l.height = (bound.Max.Y - bound.Min.Y).Ceil()
-	l.origin = image.Point{X: l.center.X - (l.width / 2), Y: l.center.Y - (l.height / 2)}
+	l.origin = image.Point{X: x - (l.width / 2), Y: y - (l.height / 2)}
 }
 
 // Rect gives the x,y coords of the label's top left and bottom right corners, in screen coordinates

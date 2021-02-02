@@ -1,5 +1,6 @@
++ convert TextButton to gg 
 + title, status bars
-+ toast
++ https://material.io/components/snackbars
 + popup menu when clicking on stationary puck (toggle wall, cycles between ne, se, sw, nw)
 + minimap
 + per-game variables (Grid, Puck, Ghosts) (maybe should be Grid, Grid.puck, Grid.ghosts)
