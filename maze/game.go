@@ -6,6 +6,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// Game represents a game state.
+type Game struct{}
+
 var (
 	// DebugMode is a boolean set by command line flag -debug
 	DebugMode bool = false
@@ -13,23 +16,16 @@ var (
 	WindowWidth int = 1920 / 2
 	// WindowHeight of main window in pixels
 	WindowHeight int = 1080 / 2
-	// TheGrid points to the Grid currently being played
-	TheGrid *Grid
-	// ThePuck points to the Puck object currently in play
-	ThePuck *Puck
-	// TheGhosts is an array of pointers to the Ghost objects currently in play
-	TheGhosts []*Ghost
 )
-
-// Game represents a game state.
-type Game struct {
-}
 
 // GSM provides global access to the game state manager
 var GSM *GameStateManager = &GameStateManager{}
 
 // Acme provides access to small, normal, large, huge Acme fonts
 var Acme *AcmeFonts = NewAcmeFonts()
+
+// TheGrid points to the Grid currently being played
+var TheGrid *Grid
 
 // NewGame generates a new Game object.
 func NewGame() (*Game, error) {

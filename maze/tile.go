@@ -40,10 +40,10 @@ func InitTile() {
 		log.Fatal("Tile dimensions not set")
 	}
 
-	var makeFunc func(uint, int) image.Image = makeTile
+	var makeFunc func(uint) image.Image = makeTile
 	tileImageLibrary = make(map[uint]*ebiten.Image, 16)
 	for i := uint(0); i < 16; i++ {
-		img := makeFunc(i, TileSize)
+		img := makeFunc(i)
 		tileImageLibrary[i] = ebiten.NewImageFromImage(img)
 	}
 
@@ -53,9 +53,10 @@ func InitTile() {
 	overSize = float64((actualTileSize - TileSize) / 2)
 
 	{
+		mid := float64(actualTileSize / 2)
 		dc := gg.NewContext(actualTileSize, actualTileSize)
 		dc.SetRGB(0, 0, 0)
-		dc.DrawCircle(float64(actualTileSize/2), float64(actualTileSize/2), 3)
+		dc.DrawCircle(mid, mid, 3)
 		dc.Fill()
 		dc.Stroke()
 		dotImage = ebiten.NewImageFromImage(dc.Image())
@@ -75,6 +76,7 @@ type Tile struct {
 	// volatile members
 	visited bool
 	marked  bool
+	pen     bool
 	parent  *Tile
 }
 
@@ -228,6 +230,9 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 
 	op := &ebiten.DrawImageOptions{}
 
+	op.GeoM.Translate(t.worldX-overSize, t.worldY-overSize)
+	op.GeoM.Translate(CameraX, CameraY)
+
 	// Reset RGB (not Alpha) forcibly
 	// tilesheet already has black shapes
 	{
@@ -237,9 +242,6 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 		b := float64(TheGrid.colorWall.B) / 0xff
 		op.ColorM.Translate(r, g, b, 0)
 	}
-
-	op.GeoM.Translate(t.worldX-overSize, t.worldY-overSize)
-	op.GeoM.Translate(CameraX, CameraY)
 
 	screen.DrawImage(tileImageLibrary[t.walls], op)
 

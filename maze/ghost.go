@@ -101,21 +101,28 @@ func NewGhost(start *Tile) *Ghost {
 	return g
 }
 
-func (g *Ghost) isDirOkay(dir int) bool {
-	if g.tile.IsWall(dir) {
+func (gh *Ghost) isDirOkay(dir int) bool {
+	if gh.tile.IsWall(dir) {
 		return false
 	}
-	// TODO refactor, maybe Grid, Puck should be visible at game.go level
-	if ThePuck.tile == g.tile.Neighbour(dir) {
+	if TheGrid.puck.tile == gh.tile.Neighbour(dir) {
 		return false
+	}
+	for _, g := range TheGrid.ghosts {
+		if g == gh {
+			continue
+		}
+		if g.dest == gh.tile.Neighbour(dir) {
+			return false
+		}
 	}
 	return true
 }
 
 // Update the state/position of the Ghost
-func (g *Ghost) Update() error {
+func (gh *Ghost) Update() error {
 
-	if g.dest == nil {
+	if gh.dest == nil {
 		var dirfuncs [4]func(int) int
 		if rand.Float64() < 0.5 {
 			dirfuncs = [4]func(int) int{left, forward, right, backward}
@@ -123,29 +130,31 @@ func (g *Ghost) Update() error {
 			dirfuncs = [4]func(int) int{right, forward, left, backward}
 		}
 		for i := 0; i < 4; i++ {
-			dir := dirfuncs[i](g.facing)
-			if g.isDirOkay(dir) {
-				g.facing = dir
-				g.dest = g.tile.Neighbour(dir)
+			dir := dirfuncs[i](gh.facing)
+			if gh.isDirOkay(dir) {
+				gh.facing = dir
+				gh.dest = gh.tile.Neighbour(dir)
 				break
 			}
 		}
-		if g.dest != nil {
-			g.lerpstep = 0.01
-			g.srcX, g.srcY = g.tile.Position()
-			g.dstX, g.dstY = g.dest.Position()
+		if gh.dest != nil {
+			gh.lerpstep = 0.01
+			gh.srcX, gh.srcY = gh.tile.Position()
+			gh.dstX, gh.dstY = gh.dest.Position()
 		} else {
+			// ghost has no direction
+			// this can happen when trying to stop ghosts from sitting on top of each other in Ghost.IsGoodDir()
 			println("ghost has no direction")
 		}
 	} else {
-		if g.lerpstep >= 1 {
-			g.tile = g.dest
-			g.worldX, g.worldY = g.tile.Position()
-			g.dest = nil
+		if gh.lerpstep >= 1 {
+			gh.tile = gh.dest
+			gh.worldX, gh.worldY = gh.tile.Position()
+			gh.dest = nil
 		} else {
-			g.worldX = lerp(g.srcX, g.dstX, g.lerpstep)
-			g.worldY = lerp(g.srcY, g.dstY, g.lerpstep)
-			g.lerpstep += 0.01
+			gh.worldX = lerp(gh.srcX, gh.dstX, gh.lerpstep)
+			gh.worldY = lerp(gh.srcY, gh.dstY, gh.lerpstep)
+			gh.lerpstep += 0.01
 		}
 	}
 
@@ -153,9 +162,9 @@ func (g *Ghost) Update() error {
 }
 
 // Draw the Ghost
-func (g *Ghost) Draw(screen *ebiten.Image) {
+func (gh *Ghost) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(g.worldX, g.worldY)
+	op.GeoM.Translate(gh.worldX, gh.worldY)
 	op.GeoM.Translate(CameraX, CameraY)
-	screen.DrawImage(g.ghostImages[g.facing], op)
+	screen.DrawImage(gh.ghostImages[gh.facing], op)
 }

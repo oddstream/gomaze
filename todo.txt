@@ -1,7 +1,8 @@
 + title, status bars
 + toast
-+ popup menu when clicking on stationary puck
++ popup menu when clicking on stationary puck (toggle wall, cycles between ne, se, sw, nw)
 + minimap
++ per-game variables (Grid, Puck, Ghosts) (maybe should be Grid, Grid.puck, Grid.ghosts)
 
 + Rooms/open spaces
 http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
@@ -9,7 +10,9 @@ https://github.com/munificent/hauberk/blob/db360d9efa714efb6d937c31953ef849c7394
 
 - don't fill in cul-de-sacs, corners become ugly
 
-+ spider in a web analogy; puck is a spider, ghosts are flies
++ herding cats
+
++ spider in a web; puck is a spider, ghosts are flies
 	spiders can build webs, delete webs
 	make baby spiders
 	lay traps for flies, eat them later

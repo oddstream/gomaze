@@ -10,12 +10,12 @@ import (
 )
 
 // return an image.Image that is bigger than the tile size requested so endcaps are visible
-func makeTile(walls uint, tileSize int) image.Image {
+func makeTile(walls uint) image.Image {
 
-	tileSizeEx := tileSize + (tileSize / 6) // same as linewidth
+	tileSizeEx := TileSize + (TileSize / 6) // same as linewidth
 
-	margin := float64(tileSizeEx-tileSize) / 2
-	lineWidth := float64(tileSize / 6)
+	margin := float64(tileSizeEx-TileSize) / 2
+	lineWidth := float64(TileSize / 6)
 
 	n := margin
 	e := float64(tileSizeEx) - margin
