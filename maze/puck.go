@@ -15,6 +15,8 @@ type Puck struct {
 	dest                   *Tile   // tile we are lerping to
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
+	facing                 int // 0,1,2,3
+	bulldozing             bool
 
 	puckImage *ebiten.Image
 
@@ -52,6 +54,9 @@ func (p *Puck) SetCamera() {
 
 // ThrowBallTo a target tile
 func (p *Puck) ThrowBallTo(targ *Tile) {
+
+	// terminate bulldozing mode
+	p.bulldozing = false
 
 	// if puck is lerping, stop it
 	if p.dest != nil {
@@ -95,10 +100,17 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 	}
 }
 
-// BallTile getter for location of puck's ball
-// func (p *Puck) BallTile() *Tile {
-// 	return p.ball.Tile()
-// }
+// travel in a direction, breaking walls, until meeting the edge or throwing the ball
+func (p *Puck) bulldoze(d int) {
+	if p.ball.tile == p.tile {
+		if p.bulldozing && p.facing == d {
+			p.bulldozing = false
+		} else {
+			p.facing = d
+			p.bulldozing = true
+		}
+	}
+}
 
 // Update the state/position of the Puck
 func (p *Puck) Update() error {
@@ -126,6 +138,18 @@ func (p *Puck) Update() error {
 				p.dstX, p.dstY = p.dest.Position()
 				p.lerpstep = 0.05
 				break
+			}
+		}
+		if p.dest == nil && p.bulldozing {
+			if tn := p.tile.Neighbour(p.facing); tn == nil {
+				p.bulldozing = false
+			} else {
+				p.tile.removeWall(p.facing)
+				p.dest = tn
+				p.srcX, p.srcY = p.tile.Position()
+				p.dstX, p.dstY = p.dest.Position()
+				p.lerpstep = 0.05
+				p.ball.ThrowTo(tn)
 			}
 		}
 	} else {

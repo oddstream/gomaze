@@ -213,13 +213,14 @@ func (g *Grid) CreateNextLevel() {
 		t.Reset()
 	}
 
+	// g.createRooms()
+	for _, t := range g.tiles {
+		if t.pen {
+			t.removeAllWalls()
+		}
+	}
+
 	rand.Seed(time.Now().UnixNano())
-
-	palette := Palettes[rand.Int()%len(Palettes)]
-	g.colorBackground = CalcBackgroundColor(palette)
-	g.colorWall = ExtendedColors[palette[0]]
-
-	g.createRooms()
 
 	g.carve()
 
@@ -228,6 +229,10 @@ func (g *Grid) CreateNextLevel() {
 	for i := 0; i < 4; i++ {
 		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
 	}
+
+	palette := Palettes[rand.Int()%len(Palettes)]
+	g.colorBackground = CalcBackgroundColor(palette)
+	g.colorWall = ExtendedColors[palette[0]]
 }
 
 // Layout implements ebiten.Game's Layout.
@@ -253,6 +258,14 @@ func (g *Grid) Update() error {
 		g.puck.tile.toggleWall(2)
 	case inpututil.IsKeyJustReleased(ebiten.KeyA):
 		g.puck.tile.toggleWall(3)
+	case inpututil.IsKeyJustReleased(ebiten.KeyUp):
+		g.puck.bulldoze(0)
+	case inpututil.IsKeyJustReleased(ebiten.KeyRight):
+		g.puck.bulldoze(1)
+	case inpututil.IsKeyJustReleased(ebiten.KeyDown):
+		g.puck.bulldoze(2)
+	case inpututil.IsKeyJustReleased(ebiten.KeyLeft):
+		g.puck.bulldoze(3)
 	}
 
 	for _, t := range g.tiles {
