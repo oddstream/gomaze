@@ -14,6 +14,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"oddstream.games/gomaze/util"
 )
 
 const (
@@ -133,7 +134,7 @@ func (g *Grid) findTile(x, y int) *Tile {
 // findTileAt finds the tile under the mouse click or touch
 func (g *Grid) findTileAt(pt image.Point) *Tile {
 	for _, t := range g.tiles {
-		if InRect(pt, t.Rect) {
+		if util.InRect(pt, t.Rect) {
 			return t
 		}
 	}
@@ -251,16 +252,16 @@ func (g *Grid) DrawMinimap(screen *ebiten.Image) {
 	dc.Stroke()
 
 	for _, gh := range g.ghosts {
-		x := mapValue(gh.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
-		y := mapValue(gh.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
+		x := util.MapValue(gh.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
+		y := util.MapValue(gh.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
 		dc.DrawCircle(x, y, 1)
 	}
 	dc.SetRGB(1, 1, 1)
 	dc.Fill()
 
 	{
-		x := mapValue(g.puck.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
-		y := mapValue(g.puck.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
+		x := util.MapValue(g.puck.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
+		y := util.MapValue(g.puck.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
 		dc.DrawCircle(x, y, 2)
 		dc.SetRGB(1, 1, 0)
 		dc.Fill()

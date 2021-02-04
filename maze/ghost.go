@@ -7,6 +7,7 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
+	"oddstream.games/gomaze/util"
 )
 
 // Ghost defines the yellow blob/player avatar
@@ -139,9 +140,9 @@ func (gh *Ghost) Update() error {
 	if gh.dest == nil {
 		var dirfuncs [4]func(int) int
 		if rand.Float64() < 0.5 {
-			dirfuncs = [4]func(int) int{leftward, forward, rightward, backward}
+			dirfuncs = [4]func(int) int{util.Leftward, util.Forward, util.Rightward, util.Backward}
 		} else {
-			dirfuncs = [4]func(int) int{rightward, forward, leftward, backward}
+			dirfuncs = [4]func(int) int{util.Rightward, util.Forward, util.Leftward, util.Backward}
 		}
 		for i := 0; i < 4; i++ {
 			dir := dirfuncs[i](gh.facing)
@@ -166,8 +167,8 @@ func (gh *Ghost) Update() error {
 			gh.worldX, gh.worldY = gh.tile.Position()
 			gh.dest = nil
 		} else {
-			gh.worldX = lerp(gh.srcX, gh.dstX, gh.lerpstep)
-			gh.worldY = lerp(gh.srcY, gh.dstY, gh.lerpstep)
+			gh.worldX = util.Lerp(gh.srcX, gh.dstX, gh.lerpstep)
+			gh.worldY = util.Lerp(gh.srcY, gh.dstY, gh.lerpstep)
 			gh.lerpstep += 0.01
 		}
 	}

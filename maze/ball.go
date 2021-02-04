@@ -5,6 +5,7 @@ package maze
 import (
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
+	"oddstream.games/gomaze/util"
 )
 
 // Ball defines the yellow blob/player avatar
@@ -58,8 +59,8 @@ func (b *Ball) Update() error {
 			b.dest = nil
 			b.worldX, b.worldY = b.tile.Position()
 		} else {
-			b.worldX = smoothstep(b.srcX, b.dstX, b.lerpstep)
-			b.worldY = smoothstep(b.srcY, b.dstY, b.lerpstep)
+			b.worldX = util.Smoothstep(b.srcX, b.dstX, b.lerpstep)
+			b.worldY = util.Smoothstep(b.srcY, b.dstY, b.lerpstep)
 			b.lerpstep += 0.05
 		}
 	}

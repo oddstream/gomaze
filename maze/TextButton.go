@@ -8,6 +8,7 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
+	"oddstream.games/gomaze/util"
 )
 
 // TextButton is an object that represents a button
@@ -56,7 +57,7 @@ func (tb *TextButton) Rect() (x0 int, y0 int, x1 int, y1 int) {
 func (tb *TextButton) Pushed(i *Input) bool {
 	if i.TouchX != 0 && i.TouchY != 0 {
 		pt := image.Point{i.TouchX, i.TouchY}
-		return InRect(pt, tb.Rect)
+		return util.InRect(pt, tb.Rect)
 	}
 	return false
 }

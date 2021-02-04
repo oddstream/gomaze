@@ -7,6 +7,7 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
+	"oddstream.games/gomaze/util"
 )
 
 // Puck defines the yellow blob/player avatar
@@ -161,8 +162,8 @@ func (p *Puck) Update() error {
 			p.worldX, p.worldY = p.tile.Position()
 			p.dest = nil
 		} else {
-			p.worldX = lerp(p.srcX, p.dstX, p.lerpstep)
-			p.worldY = lerp(p.srcY, p.dstY, p.lerpstep)
+			p.worldX = util.Lerp(p.srcX, p.dstX, p.lerpstep)
+			p.worldY = util.Lerp(p.srcY, p.dstY, p.lerpstep)
 			p.lerpstep += 0.05
 		}
 	}
