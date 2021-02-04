@@ -5,6 +5,7 @@ package maze
 import (
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -26,6 +27,21 @@ func smoothstep(A float64, B float64, v float64) float64 {
 	// v = (v) * (v) * (v) * ((v)*((v)*6-15) + 10)	// smootherstep
 	X := (B * v) + (A * (1.0 - v))
 	return X
+}
+
+// The opposite of lerp. Instead of a range and a factor, we give a range and a value to find out the factor.
+func normalize(start, finish, value float64) float64 {
+	return (value - start) / (finish - start)
+}
+
+// converts a value from the scale [fromMin, fromMax] to a value from the scale[toMin, toMax].
+// It’s just the normalize and lerp functions working together.
+func mapValue(value, fromMin, fromMax, toMin, toMax float64) float64 {
+	return lerp(toMin, toMax, normalize(fromMin, fromMax, value))
+}
+
+func clamp(value, min, max float64) float64 {
+	return math.Min(math.Max(value, min), max)
 }
 
 // https://stackoverflow.com/questions/51626905/drawing-circles-with-two-radius-in-golang
@@ -66,12 +82,12 @@ func backward(dir int) int {
 	return d[dir]
 }
 
-func left(dir int) int {
+func leftward(dir int) int {
 	d := [4]int{3, 0, 1, 2}
 	return d[dir]
 }
 
-func right(dir int) int {
+func rightward(dir int) int {
 	d := [4]int{1, 2, 3, 0}
 	return d[dir]
 }

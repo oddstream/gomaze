@@ -106,12 +106,22 @@ func NewGhost(start *Tile) *Ghost {
 }
 
 func (gh *Ghost) isDirOkay(dir int) bool {
+	// can't go through walls
 	if gh.tile.IsWall(dir) {
 		return false
 	}
+	// don't like going where puck is
 	if TheGrid.puck.tile == gh.tile.Neighbour(dir) {
 		return false
 	}
+	// don't leave the pen - this makes it too easy
+	// if gh.tile.pen {
+	// 	tn := gh.tile.Neighbour(dir)
+	// 	if !tn.pen {
+	// 		return false
+	// 	}
+	// }
+	// don't like going on top of other ghosts
 	for _, g := range TheGrid.ghosts {
 		if g == gh {
 			continue
@@ -129,9 +139,9 @@ func (gh *Ghost) Update() error {
 	if gh.dest == nil {
 		var dirfuncs [4]func(int) int
 		if rand.Float64() < 0.5 {
-			dirfuncs = [4]func(int) int{left, forward, right, backward}
+			dirfuncs = [4]func(int) int{leftward, forward, rightward, backward}
 		} else {
-			dirfuncs = [4]func(int) int{right, forward, left, backward}
+			dirfuncs = [4]func(int) int{rightward, forward, leftward, backward}
 		}
 		for i := 0; i < 4; i++ {
 			dir := dirfuncs[i](gh.facing)

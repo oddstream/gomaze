@@ -36,9 +36,10 @@ func NewMenu() *Menu {
 
 	s.widgets = []Widget{
 		NewLabel("MAZE", Acme.large),
-		NewTextButton(" TINY ", 200, 50, Acme.normal, func() { TheGrid = NewGrid(5, 5); GSM.Switch(TheGrid) }),
-		NewTextButton(" NORMAL ", 200, 50, Acme.normal, func() { TheGrid = NewGrid(11, 11); GSM.Switch(TheGrid) }),
-		NewTextButton(" BIG ", 200, 50, Acme.large, func() { TheGrid = NewGrid(31, 31); GSM.Switch(TheGrid) }),
+		NewTextButton("TINY", 200, 50, Acme.normal, func() { TheGrid = NewGrid(5, 5, 4); GSM.Switch(TheGrid) }),
+		NewTextButton("NORMAL", 200, 50, Acme.normal, func() { TheGrid = NewGrid(11, 11, 4); GSM.Switch(TheGrid) }),
+		NewTextButton("LARGE", 200, 50, Acme.large, func() { TheGrid = NewGrid(21, 21, 12); GSM.Switch(TheGrid) }),
+		NewTextButton("EXCESSIVE", 200, 50, Acme.normal, func() { TheGrid = NewGrid(31, 31, 24); GSM.Switch(TheGrid) }),
 	}
 
 	return s
@@ -48,8 +49,8 @@ func NewMenu() *Menu {
 func (s *Menu) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 	xCenter := outsideWidth / 2
-	// create 6 vertical slots for 5 widgets
-	yPlaces := [5]int{} // golang gotcha: can't use len(s.widgets)
+	// create len(widgets) + 1 vertical slots
+	yPlaces := [6]int{} // golang gotcha: can't use len(s.widgets)
 	for i := 0; i < len(yPlaces); i++ {
 		yPlaces[i] = (outsideHeight / len(yPlaces)) * i
 	}

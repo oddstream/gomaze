@@ -144,7 +144,9 @@ func (p *Puck) Update() error {
 			if tn := p.tile.Neighbour(p.facing); tn == nil {
 				p.bulldozing = false
 			} else {
+				// p.tile.addWall(leftward(p.facing))
 				p.tile.removeWall(p.facing)
+				// p.tile.addWall(rightward(p.facing))
 				p.dest = tn
 				p.srcX, p.srcY = p.tile.Position()
 				p.dstX, p.dstY = p.dest.Position()

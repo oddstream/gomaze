@@ -2,8 +2,6 @@
 + title, status bars
 + https://material.io/components/snackbars
 + popup menu when clicking on stationary puck (toggle wall, cycles between ne, se, sw, nw)
-+ minimap
-	each (grid,tile,puck, not mark,ball) has a mini img
 
 + Rooms/open spaces
 http://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/

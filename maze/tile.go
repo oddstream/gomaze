@@ -34,8 +34,7 @@ var (
 	oppdirs          = [4]int{2, 3, 0, 1}
 )
 
-// InitTile used to be init(), but TileSize may not be set yet, hence this func called from NewGrid()
-func InitTile() {
+func init() {
 	if 0 == TileSize {
 		log.Fatal("Tile dimensions not set")
 	}

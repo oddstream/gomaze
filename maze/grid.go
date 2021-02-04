@@ -16,11 +16,15 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+const (
+	// TileSize is now a constant
+	TileSize = 80
+)
+
 // TilesAcross and TilesDown are package-level variables so they can be seen by Tile
 var (
 	TilesAcross int
 	TilesDown   int
-	TileSize    int
 	CameraX     float64
 	CameraY     float64
 )
@@ -38,7 +42,7 @@ type Grid struct {
 }
 
 // NewGrid create a Grid object
-func NewGrid(w, h int) *Grid {
+func NewGrid(w, h, ghostCount int) *Grid {
 
 	// var screenWidth, screenHeight int
 
@@ -48,7 +52,6 @@ func NewGrid(w, h int) *Grid {
 	// 	screenWidth, screenHeight = ebiten.WindowSize()
 	// }
 
-	TileSize = 80
 	TilesAcross, TilesDown = w, h
 
 	g := &Grid{tiles: make([]*Tile, TilesAcross*TilesDown)}
@@ -65,8 +68,6 @@ func NewGrid(w, h int) *Grid {
 		t.edges[2] = g.findTile(x, y+1)
 		t.edges[3] = g.findTile(x-1, y)
 	}
-
-	InitTile()
 
 	{
 		midX := TilesAcross / 2
@@ -91,7 +92,7 @@ func NewGrid(w, h int) *Grid {
 		g.penY = float64(y)
 	}
 
-	g.CreateNextLevel()
+	g.CreateNextLevel(ghostCount)
 
 	g.input = NewInput()
 
@@ -208,7 +209,7 @@ func (g *Grid) AllTiles(fn func(*Tile)) {
 }
 
 // CreateNextLevel resets game data and moves the puzzle to the next level
-func (g *Grid) CreateNextLevel() {
+func (g *Grid) CreateNextLevel(ghostCount int) {
 	for _, t := range g.tiles {
 		t.Reset()
 	}
@@ -226,13 +227,52 @@ func (g *Grid) CreateNextLevel() {
 
 	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < ghostCount; i++ {
 		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
 	}
 
 	palette := Palettes[rand.Int()%len(Palettes)]
 	g.colorBackground = CalcBackgroundColor(palette)
 	g.colorWall = ExtendedColors[palette[0]]
+}
+
+// DrawMinimap shows position of ghosts
+func (g *Grid) DrawMinimap(screen *ebiten.Image) {
+	screenWidth, _ := screen.Size()
+	mapSize := float64(screenWidth / 10)          // all grids are currently square
+	mapX, mapY := float64(screenWidth)-mapSize, 0 //float64(screenHeight)-mapSize
+
+	worldWidth, worldHeight := float64(TilesAcross*TileSize), float64(TilesDown*TileSize)
+	halfTileSize := float64(TileSize / 2)
+
+	dc := gg.NewContext(screenWidth/10, screenWidth/10)
+	dc.DrawRectangle(0, 0, float64(mapSize-1), float64(mapSize-1))
+	dc.SetRGB(1, 1, 1)
+	dc.Stroke()
+
+	for _, gh := range g.ghosts {
+		x := mapValue(gh.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
+		y := mapValue(gh.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
+		dc.DrawCircle(x, y, 1)
+	}
+	dc.SetRGB(1, 1, 1)
+	dc.Fill()
+
+	{
+		x := mapValue(g.puck.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
+		y := mapValue(g.puck.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
+		dc.DrawCircle(x, y, 2)
+		dc.SetRGB(1, 1, 0)
+		dc.Fill()
+	}
+
+	dc.Stroke()
+	mapImg := ebiten.NewImageFromImage(dc.Image())
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(mapX), float64(mapY))
+	screen.DrawImage(mapImg, op)
+
 }
 
 // Layout implements ebiten.Game's Layout.
@@ -294,7 +334,9 @@ func (g *Grid) Update() error {
 		}
 	}
 	if count == len(g.ghosts) {
-		println("all ghosts penned")
+		// TODO GSM switch to an intermediate/cut scene here
+		TheGrid = NewGrid(TilesAcross+2, TilesDown+2, len(g.ghosts)+1)
+		GSM.Switch(TheGrid)
 	}
 
 	g.puck.Update()
@@ -323,6 +365,8 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	}
 
 	g.puck.Draw(screen)
+
+	g.DrawMinimap(screen)
 
 	if DebugMode {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("grid:%d,%d camera:%v,%v puck:%v,%v", TilesAcross, TilesDown, CameraX, CameraY, g.puck.tile.X, g.puck.tile.Y))
