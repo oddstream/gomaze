@@ -18,7 +18,8 @@ type Ghost struct {
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
 
-	ghostImages [4]*ebiten.Image
+	Images             [4]*ebiten.Image
+	directionlessImage *ebiten.Image
 
 	worldX, worldY float64
 }
@@ -50,7 +51,7 @@ var polyCoords = []float64{
 	-12, 0,
 }
 
-func drawGhost(dir int) *ebiten.Image {
+func createImage(dir int) *ebiten.Image {
 	mid := float64(TileSize / 2)
 	dc := gg.NewContext(TileSize, TileSize)
 
@@ -74,16 +75,19 @@ func drawGhost(dir int) *ebiten.Image {
 	dc.Fill()
 	dc.SetRGB(0, 0, 0)
 	switch dir {
-	case 0:
+	case -1: // kludge for directionless
+		dc.DrawCircle(mid-10, mid-2, 4)
+		dc.DrawCircle(mid+10, mid-2, 4)
+	case 0: // NORTH
 		dc.DrawCircle(mid-10, mid-4, 4)
 		dc.DrawCircle(mid+10, mid-4, 4)
-	case 1:
+	case 1: // EAST
 		dc.DrawCircle(mid-10+2, mid-2, 4)
 		dc.DrawCircle(mid+10+2, mid-2, 4)
-	case 2:
+	case 2: //SOUTH
 		dc.DrawCircle(mid-10, mid+2, 4)
 		dc.DrawCircle(mid+10, mid+2, 4)
-	case 3:
+	case 3: // WEST
 		dc.DrawCircle(mid-10-2, mid-2, 4)
 		dc.DrawCircle(mid+10-2, mid-2, 4)
 	}
@@ -97,8 +101,9 @@ func NewGhost(start *Tile) *Ghost {
 	g := &Ghost{tile: start}
 
 	for d := 0; d < 4; d++ {
-		g.ghostImages[d] = drawGhost(d)
+		g.Images[d] = createImage(d)
 	}
+	g.directionlessImage = createImage(-1)
 
 	g.facing = 0
 	g.worldX, g.worldY = g.tile.Position()
@@ -159,7 +164,6 @@ func (gh *Ghost) Update() error {
 		} else {
 			// ghost has no direction
 			// this can happen when trying to stop ghosts from sitting on top of each other in Ghost.IsGoodDir()
-			println("ghost has no direction")
 		}
 	} else {
 		if gh.lerpstep >= 1 {
@@ -181,5 +185,9 @@ func (gh *Ghost) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(gh.worldX, gh.worldY)
 	op.GeoM.Translate(CameraX, CameraY)
-	screen.DrawImage(gh.ghostImages[gh.facing], op)
+	if gh.dest == nil {
+		screen.DrawImage(gh.directionlessImage, op)
+	} else {
+		screen.DrawImage(gh.Images[gh.facing], op)
+	}
 }

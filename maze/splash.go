@@ -92,7 +92,7 @@ func (s *Splash) Update() error {
 
 // Draw draws the current GameState to the given screen
 func (s *Splash) Draw(screen *ebiten.Image) {
-	screen.Fill(colorBackground)
+	screen.Fill(BasicColors["Black"])
 
 	skewRadians := s.skew * math.Pi / 180
 

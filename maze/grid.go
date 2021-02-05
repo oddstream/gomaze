@@ -239,29 +239,29 @@ func (g *Grid) CreateNextLevel(ghostCount int) {
 
 // DrawMinimap shows position of ghosts
 func (g *Grid) DrawMinimap(screen *ebiten.Image) {
-	screenWidth, _ := screen.Size()
-	mapSize := float64(screenWidth / 10)          // all grids are currently square
-	mapX, mapY := float64(screenWidth)-mapSize, 0 //float64(screenHeight)-mapSize
+	screenWidth, screenHeight := screen.Size()
+	mapWidth, mapHeight := float64(screenWidth/10), float64(screenHeight/10)
+	mapX, mapY := float64(screenWidth)-mapWidth, 0 //float64(screenHeight)-mapHeight
 
 	worldWidth, worldHeight := float64(TilesAcross*TileSize), float64(TilesDown*TileSize)
 	halfTileSize := float64(TileSize / 2)
 
 	dc := gg.NewContext(screenWidth/10, screenWidth/10)
-	dc.DrawRectangle(0, 0, float64(mapSize-1), float64(mapSize-1))
+	dc.DrawRectangle(0, 0, float64(mapWidth-1), float64(mapHeight-1))
 	dc.SetRGB(1, 1, 1)
 	dc.Stroke()
 
 	for _, gh := range g.ghosts {
-		x := util.MapValue(gh.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
-		y := util.MapValue(gh.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
+		x := util.MapValue(gh.worldX+halfTileSize, 0, worldWidth, 0, mapWidth)
+		y := util.MapValue(gh.worldY+halfTileSize, 0, worldHeight, 0, mapHeight)
 		dc.DrawCircle(x, y, 1)
 	}
 	dc.SetRGB(1, 1, 1)
 	dc.Fill()
 
 	{
-		x := util.MapValue(g.puck.worldX+halfTileSize, 0, worldWidth, 0, mapSize)
-		y := util.MapValue(g.puck.worldY+halfTileSize, 0, worldHeight, 0, mapSize)
+		x := util.MapValue(g.puck.worldX+halfTileSize, 0, worldWidth, 0, mapWidth)
+		y := util.MapValue(g.puck.worldY+halfTileSize, 0, worldHeight, 0, mapHeight)
 		dc.DrawCircle(x, y, 2)
 		dc.SetRGB(1, 1, 0)
 		dc.Fill()
@@ -335,9 +335,7 @@ func (g *Grid) Update() error {
 		}
 	}
 	if count == len(g.ghosts) {
-		// TODO GSM switch to an intermediate/cut scene here
-		TheGrid = NewGrid(TilesAcross+2, TilesDown+2, len(g.ghosts)+1)
-		GSM.Switch(TheGrid)
+		GSM.Switch(NewCutscene(TilesAcross+2, TilesDown+2, len(g.ghosts)+1))
 	}
 
 	g.puck.Update()
