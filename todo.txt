@@ -1,4 +1,4 @@
-+ cutscene between levels
++ score based on time, number of moves
 + menu becomes level select those unlocked
 + live version at https://oddstream.games/gomaze
 + title, status bars
