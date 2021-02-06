@@ -1,3 +1,5 @@
+$ GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o ../oddstream.github.io/Herding/gomaze.wasm
+
 + score based on time, number of moves
 + menu becomes level select those unlocked
 + live version at https://oddstream.games/gomaze

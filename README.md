@@ -9,6 +9,8 @@ Toggle the walls around the yellow blob using the WASD keys.
 Turn the yellow blob into a wall-breaking bulldozer using the arrow keys.
 Try to herd the ghosts into the small area at the center of the grid.
 
+[Live Version](https://oddstream.games/Herding/gomaze.html)
+
 ![Screenshot](https://github.com/oddstream/gomaze/blob/main/screenshots/screenshot1.png "Screenshot")
 ![Screenshot](https://github.com/oddstream/gomaze/blob/main/screenshots/screenshot2.png "Screenshot")
 ![Screenshot](https://github.com/oddstream/gomaze/blob/main/screenshots/screenshot3.png "Screenshot")

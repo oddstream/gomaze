@@ -35,11 +35,14 @@ func NewMenu() *Menu {
 	s := &Menu{input: NewInput()}
 
 	s.widgets = []Widget{
-		NewLabel("MAZE", Acme.large),
-		NewTextButton("TINY", 200, 50, Acme.normal, func() { TheGrid = NewGrid(5, 5, 4); GSM.Switch(TheGrid) }),
-		NewTextButton("NORMAL", 200, 50, Acme.normal, func() { TheGrid = NewGrid(13, 11, 4); GSM.Switch(TheGrid) }),
-		NewTextButton("LARGE", 200, 50, Acme.large, func() { TheGrid = NewGrid(21, 21, 12); GSM.Switch(TheGrid) }),
-		NewTextButton("EXCESSIVE", 200, 50, Acme.normal, func() { TheGrid = NewGrid(31, 31, 24); GSM.Switch(TheGrid) }),
+		NewLabel("CAN YOU HERD KITTENS?", Acme.large),
+		NewLabel("Move the yellow blob by clicking where you want it to go", Acme.normal),
+		NewLabel("Build/demolish walls using the WASD keys", Acme.normal),
+		NewLabel("Herd the kittens into the square in the middle", Acme.normal),
+		NewTextButton("START", 200, 50, Acme.normal, func() { GSM.Switch(NewCutscene(7, 5, 4)) }),
+		// NewTextButton("NORMAL", 200, 50, Acme.normal, func() { GSM.Switch(NewCutscene(15, 11, 4)) }),
+		// NewTextButton("LARGE", 200, 50, Acme.large, func() { GSM.Switch(NewCutscene(21, 17, 8)) }),
+		// NewTextButton("EXCESSIVE", 200, 50, Acme.normal, func() { GSM.Switch(NewCutscene(31, 23, 8)) }),
 	}
 
 	return s

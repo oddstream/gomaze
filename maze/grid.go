@@ -20,6 +20,8 @@ import (
 const (
 	// TileSize is now a constant
 	TileSize = 80
+	// MaxGhosts limit that can fit in 3x3 pen
+	MaxGhosts = 8
 )
 
 // TilesAcross and TilesDown are package-level variables so they can be seen by Tile
@@ -228,6 +230,9 @@ func (g *Grid) CreateNextLevel(ghostCount int) {
 
 	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
 
+	if ghostCount > MaxGhosts {
+		ghostCount = MaxGhosts
+	}
 	for i := 0; i < ghostCount; i++ {
 		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
 	}
@@ -239,14 +244,16 @@ func (g *Grid) CreateNextLevel(ghostCount int) {
 
 // DrawMinimap shows position of ghosts
 func (g *Grid) DrawMinimap(screen *ebiten.Image) {
-	screenWidth, screenHeight := screen.Size()
-	mapWidth, mapHeight := float64(screenWidth/10), float64(screenHeight/10)
+	screenWidth, _ := screen.Size()
+	worldWidth, worldHeight := float64(TilesAcross*TileSize), float64(TilesDown*TileSize)
+
+	// mapWidth, mapHeight := float64(screenWidth/10), float64(screenHeight/10)
+	mapWidth, mapHeight := worldWidth/10, worldHeight/10
 	mapX, mapY := float64(screenWidth)-mapWidth, 0 //float64(screenHeight)-mapHeight
 
-	worldWidth, worldHeight := float64(TilesAcross*TileSize), float64(TilesDown*TileSize)
 	halfTileSize := float64(TileSize / 2)
 
-	dc := gg.NewContext(screenWidth/10, screenWidth/10)
+	dc := gg.NewContext(int(mapWidth), int(mapHeight))
 	dc.DrawRectangle(0, 0, float64(mapWidth-1), float64(mapHeight-1))
 	dc.SetRGB(1, 1, 1)
 	dc.Stroke()

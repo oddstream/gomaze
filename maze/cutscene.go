@@ -36,10 +36,10 @@ func NewCutscene(newWidth, newHeight, newGhosts int) *Cutscene {
 func (cs *Cutscene) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 	if cs.circlePos.X == 0 && cs.circlePos.Y == 0 {
-		_, cy := cs.circleImage.Size()
-		cs.startX = 0
+		cx, cy := cs.circleImage.Size()
+		cs.startX = -cx
 		cs.finishX = outsideWidth
-		cs.circlePos = image.Point{X: cs.startX, Y: (outsideHeight / 2) + (cy / 2)}
+		cs.circlePos = image.Point{X: cs.startX, Y: outsideHeight - cy}
 	}
 	return outsideWidth, outsideHeight
 }
@@ -58,11 +58,9 @@ func (cs *Cutscene) Update() error {
 
 // Draw draws the current GameState to the given screen
 func (cs *Cutscene) Draw(screen *ebiten.Image) {
-	screen.Fill(BasicColors["Black"])
+	screen.Fill(colorBackground)
 
 	op := &ebiten.DrawImageOptions{}
-	sx, sy := cs.circleImage.Size()
-	op.GeoM.Translate(float64(-sx/2), float64(-sy/2))
 	op.GeoM.Translate(float64(cs.circlePos.X), float64(cs.circlePos.Y))
 	screen.DrawImage(cs.circleImage, op)
 }
