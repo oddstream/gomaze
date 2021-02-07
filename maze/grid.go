@@ -98,8 +98,24 @@ func NewGrid(w, h, ghostCount int) *Grid {
 	g.CreateNextLevel(ghostCount)
 
 	g.input = NewInput()
+	g.input.Add(g)
 
 	return g
+}
+
+// NotifyCallback is called by the Subject (Input) when something interesting happens
+func (g *Grid) NotifyCallback(event interface{}) {
+	pt := event.(image.Point)
+	pt.X = pt.X - int(CameraX)
+	pt.Y = pt.Y - int(CameraY)
+	t := g.findTileAt(pt)
+	if t != nil {
+		// println("input on tile", t.X, t.Y, t.wallCount())
+		if t.wallCount() < 4 {
+			g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
+			g.puck.ThrowBallTo(t)
+		}
+	}
 }
 
 // Size returns the size of the grid in pixels
@@ -317,22 +333,10 @@ func (g *Grid) Update() error {
 	}
 
 	for _, t := range g.tiles {
-		t.Update()
+		t.Update() // doesn't do anything at the moment
 	}
 
 	g.input.Update()
-
-	if g.input.TouchX != 0 && g.input.TouchY != 0 {
-		pt := image.Point{g.input.TouchX - int(CameraX), g.input.TouchY - int(CameraY)}
-		t := g.findTileAt(pt)
-		if t != nil {
-			// println("input on tile", t.X, t.Y, t.wallCount())
-			if t.wallCount() < 4 {
-				g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
-				g.puck.ThrowBallTo(t)
-			}
-		}
-	}
 
 	count := 0
 	for _, gh := range g.ghosts {

@@ -4,123 +4,57 @@ package maze
 
 import (
 	"image"
+	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// var (
-// 	Nothing = struct{}{}
-// )
+// https://gist.github.com/patrickmn/1549985
 
-// StrokeSource represents a input device to provide strokes.
-type StrokeSource interface {
-	Position() (int, int)
-	IsJustReleased() bool
-}
-
-// MouseStrokeSource is a StrokeSource implementation of mouse.
-type MouseStrokeSource struct{}
-
-// Position returns the x,y cordinates of the cursor position
-func (m *MouseStrokeSource) Position() (int, int) {
-	return ebiten.CursorPosition()
-}
-
-// IsJustReleased returns true if the left mouse button was released in the current frame
-func (m *MouseStrokeSource) IsJustReleased() bool {
-	return inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft)
-}
-
-// TouchStrokeSource is a StrokeSource implementation of touch.
-type TouchStrokeSource struct {
-	ID ebiten.TouchID
-}
-
-// Position returns the x,y cordinates of the cursor position
-func (t *TouchStrokeSource) Position() (int, int) {
-	return ebiten.TouchPosition(t.ID)
-}
-
-// IsJustReleased returns true if the first touch was released in the current frame
-func (t *TouchStrokeSource) IsJustReleased() bool {
-	return inpututil.IsTouchJustReleased(t.ID)
-}
-
-// Stroke manages the current drag state by mouse.
-type Stroke struct {
-	source StrokeSource
-
-	// init X,Y represents the position when dragging starts.
-	init image.Point
-
-	// current X,Y represents the current position
-	current image.Point
-
-	released bool
-
-	// draggingObject represents a object (like a tile) that is being dragged.
-	draggingObject interface{}
-}
-
-// NewStroke creates a new Stroke object
-func NewStroke(source StrokeSource) *Stroke {
-	cx, cy := source.Position()
-	return &Stroke{
-		source:  source,
-		init:    image.Point{X: cx, Y: cy},
-		current: image.Point{X: cx, Y: cy},
+type (
+	Observable interface {
+		Add(observer Observer)
+		Notify(event interface{})
+		Remove(event interface{})
 	}
-}
 
-// Update is called once per frame and updates the Stroke object
-func (s *Stroke) Update() {
-	if s.released {
-		return
+	Observer interface {
+		NotifyCallback(event interface{})
 	}
-	if s.source.IsJustReleased() {
-		s.released = true
-		return
-	}
-	x, y := s.source.Position()
-	s.current = image.Point{X: x, Y: y}
-}
+)
 
-// IsReleased returns true if ...
-func (s *Stroke) IsReleased() bool {
-	return s.released
-}
-
-// Position returns the x,y position of the cursor
-func (s *Stroke) Position() image.Point {
-	return s.current
-}
-
-// PositionDiff returns the x,y difference between the start of the stroke and the stoke's current position
-func (s *Stroke) PositionDiff() image.Point {
-	return s.current.Sub(s.init) // current - init
-}
-
-// DraggingObject returns a reference to the object currently being dragged
-func (s *Stroke) DraggingObject() interface{} {
-	return s.draggingObject
-}
-
-// SetDraggingObject sets the object currently being dragged
-func (s *Stroke) SetDraggingObject(object interface{}) {
-	s.draggingObject = object
-}
-
-// Input records state of mouse and touch
+// Input records state of mouse and touch, Subject in Observer pattern
 type Input struct {
 	// pressed        map[ebiten.Key]struct{} // an empty and useless type
-	TouchX, TouchY int
+	observer sync.Map
 }
 
 // NewInput Input object constructor
 func NewInput() *Input {
 	// no fields to initialize, so use the built-in new()
 	return new(Input)
+}
+
+// Add this observer to the list
+func (i *Input) Add(observer Observer) {
+	i.observer.Store(observer, struct{}{})
+}
+
+// Remove this observer from the list
+func (i *Input) Remove(observer Observer) {
+	i.observer.Delete(observer)
+}
+
+// Notify observers that an event has happened
+func (i *Input) Notify(event interface{}) {
+	i.observer.Range(func(key, value interface{}) bool {
+		if key == nil {
+			return false
+		}
+		key.(Observer).NotifyCallback(event)
+		return true
+	})
 }
 
 // Pressed returns true of that key has been pressed
@@ -132,14 +66,16 @@ func NewInput() *Input {
 // Update the state of the Input object
 func (i *Input) Update() {
 
-	i.TouchX, i.TouchY = 0, 0
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
-		i.TouchX, i.TouchY = ebiten.CursorPosition()
-	}
-	ts := inpututil.JustPressedTouchIDs()
-	if ts != nil && len(ts) == 1 {
-		if inpututil.IsTouchJustReleased(ts[0]) {
-			i.TouchX, i.TouchY = ebiten.TouchPosition(ts[0])
+		x, y := ebiten.CursorPosition()
+		i.Notify(image.Point{X: x, Y: y})
+	} else {
+		ts := inpututil.JustPressedTouchIDs()
+		if ts != nil && len(ts) == 1 {
+			if inpututil.IsTouchJustReleased(ts[0]) {
+				x, y := ebiten.TouchPosition(ts[0])
+				i.Notify(image.Point{X: x, Y: y})
+			}
 		}
 	}
 

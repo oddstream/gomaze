@@ -44,11 +44,6 @@ func (l *Label) Rect() (x0 int, y0 int, x1 int, y1 int) {
 	return // using named return parameters
 }
 
-// Pushed returns true if the label has just been pushed, which we don't care about
-func (l *Label) Pushed(*Input) bool {
-	return false
-}
-
 // Action invikes the action func
 func (l *Label) Action() {
 	// Labels take no action

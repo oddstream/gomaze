@@ -1,5 +1,6 @@
 $ GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o ../oddstream.github.io/Herding/gomaze.wasm
 
++ Input should manage key presses
 + score based on time, number of moves
 + menu becomes level select those unlocked
 + live version at https://oddstream.games/gomaze
@@ -21,11 +22,3 @@ https://github.com/munificent/hauberk/blob/db360d9efa714efb6d937c31953ef849c7394
 	lay traps for flies, eat them later
 	eat flies to increase health
 	get hunted by predators (as do flies, spiders compete for them)
-
-+ yorg.io
-	set base on a tile
-	mine diamonds/gold/whatever for wealth
-	mine ore for raw materials
-	visit and fetch model (stardew valley) or create pipes (yorg.io)
-	build defences (traps, weapons, walls)
-	attack by rats/worms/whatever

@@ -47,7 +47,7 @@ func NewPuck(start *Tile) *Puck {
 
 // SetCamera so that puck is at the center of the screen
 func (p *Puck) SetCamera() {
-	w, h := ebiten.WindowSize()
+	w, h := WindowWidth, WindowHeight // can't use ebiten.WindowSize(), returns 0,0 on WASM
 	sx, sy := p.puckImage.Size()
 	CameraX = float64(w/2-sx/2) - p.worldX
 	CameraY = float64(h/2-sy/2) - p.worldY

@@ -13,9 +13,9 @@ var (
 	// DebugMode is a boolean set by command line flag -debug
 	DebugMode bool = false
 	// WindowWidth of main window in pixels
-	WindowWidth int = 1920 / 2
+	WindowWidth int
 	// WindowHeight of main window in pixels
-	WindowHeight int = 1080 / 2
+	WindowHeight int
 )
 
 // GSM provides global access to the game state manager
@@ -38,6 +38,8 @@ func NewGame() (*Game, error) {
 
 // Layout implements ebiten.Game's Layout.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	WindowWidth = outsideWidth
+	WindowHeight = outsideHeight
 	state := GSM.Get()
 	return state.Layout(outsideWidth, outsideHeight)
 }

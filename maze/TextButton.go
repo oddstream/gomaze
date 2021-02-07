@@ -11,7 +11,7 @@ import (
 	"oddstream.games/gomaze/util"
 )
 
-// TextButton is an object that represents a button
+// TextButton is an object that represents a button, Observer in Observer pattern
 type TextButton struct {
 	text          string
 	font          font.Face
@@ -22,7 +22,7 @@ type TextButton struct {
 }
 
 // NewTextButton creates and returns a new TextButton object centered at x,y
-func NewTextButton(str string, w int, h int, btnFont font.Face, actionFn func()) *TextButton {
+func NewTextButton(str string, w int, h int, btnFont font.Face, actionFn func(), i *Input) *TextButton {
 
 	tb := &TextButton{text: str, width: w, height: h, font: btnFont, action: actionFn}
 
@@ -36,7 +36,17 @@ func NewTextButton(str string, w int, h int, btnFont font.Face, actionFn func())
 	dc.Stroke()
 	tb.img = ebiten.NewImageFromImage(dc.Image())
 
+	i.Add(tb)
+
 	return tb
+}
+
+// NotifyCallback is called by the Subject (Input) when something interesting happens
+func (tb *TextButton) NotifyCallback(event interface{}) {
+	pt := event.(image.Point)
+	if util.InRect(pt, tb.Rect) {
+		tb.Action()
+	}
 }
 
 // SetPosition sets the position of this widget in screen coords
@@ -51,15 +61,6 @@ func (tb *TextButton) Rect() (x0 int, y0 int, x1 int, y1 int) {
 	x1 = x0 + tb.width
 	y1 = y0 + tb.height
 	return // using named return parameters
-}
-
-// Pushed returns true if the button has just been pushed
-func (tb *TextButton) Pushed(i *Input) bool {
-	if i.TouchX != 0 && i.TouchY != 0 {
-		pt := image.Point{i.TouchX, i.TouchY}
-		return util.InRect(pt, tb.Rect)
-	}
-	return false
 }
 
 // Action invokes the action func
