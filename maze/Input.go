@@ -10,15 +10,15 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// https://gist.github.com/patrickmn/1549985
-
 type (
+	// Observable https://gist.github.com/patrickmn/1549985
 	Observable interface {
 		Add(observer Observer)
 		Notify(event interface{})
 		Remove(event interface{})
 	}
 
+	// Observer https://gist.github.com/patrickmn/1549985
 	Observer interface {
 		NotifyCallback(event interface{})
 	}
@@ -57,12 +57,6 @@ func (i *Input) Notify(event interface{}) {
 	})
 }
 
-// Pressed returns true of that key has been pressed
-// func (i *Input) Pressed(ebiten.Key) bool {
-// 	_, ok := i.pressed[ebiten.KeyShift]
-// 	return ok
-// }
-
 // Update the state of the Input object
 func (i *Input) Update() {
 
@@ -78,14 +72,6 @@ func (i *Input) Update() {
 			}
 		}
 	}
-
-	// i.pressed = make(map[ebiten.Key]struct{})
-	// for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
-	// 	if ebiten.IsKeyPressed(k) {
-	// 		// if inpututil.IsKeyJustPressed(k) {
-	// 		i.pressed[k] = struct{}{} // an empty and useless value
-	// 	}
-	// }
 
 	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
 		if inpututil.IsKeyJustPressed(k) {

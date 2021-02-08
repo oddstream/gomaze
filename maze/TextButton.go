@@ -44,17 +44,16 @@ func NewTextButton(str string, w int, h int, btnFont font.Face, actionFn func(),
 
 // NotifyCallback is called by the Subject (Input) when something interesting happens
 func (tb *TextButton) NotifyCallback(event interface{}) {
-	pt, ok := event.(image.Point)
-	if ok {
+	switch v := event.(type) { // Type switch https://tour.golang.org/methods/16
+	case image.Point:
+		pt := v
 		if util.InRect(pt, tb.Rect) {
 			tb.Action()
 		}
-	} else {
-		k, ok := event.(ebiten.Key)
-		if ok {
-			if k == ebiten.KeyBackspace {
-				os.Exit(0)
-			}
+	case ebiten.Key:
+		k := v
+		if k == ebiten.KeyBackspace {
+			os.Exit(0)
 		}
 	}
 }

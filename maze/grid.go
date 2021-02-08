@@ -104,36 +104,33 @@ func NewGrid(w, h, ghostCount int) *Grid {
 
 // NotifyCallback is called by the Subject (Input) when something interesting happens
 func (g *Grid) NotifyCallback(event interface{}) {
-	pt, ok := event.(image.Point)
-	if ok {
+	switch v := event.(type) { // Type switch https://tour.golang.org/methods/16
+	case image.Point:
+		pt := v
 		pt.X = pt.X - int(CameraX)
 		pt.Y = pt.Y - int(CameraY)
+		// pt = pt.Sub(image.Point{X: int(CameraX), Y: int(CameraY)})
 		t := g.findTileAt(pt)
 		if t != nil {
 			// println("input on tile", t.X, t.Y, t.wallCount())
-			if t.wallCount() < 4 {
-				g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
-				g.puck.ThrowBallTo(t)
-			}
+			g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
+			g.puck.ThrowBallTo(t)
 		}
-	} else {
-		k, ok := event.(ebiten.Key)
-		if ok {
-			switch k {
-			case ebiten.KeyBackspace:
-				GSM.Switch(NewMenu())
-			case ebiten.KeyW:
-				g.puck.tile.toggleWall(0)
-			case ebiten.KeyD:
-				g.puck.tile.toggleWall(1)
-			case ebiten.KeyS:
-				g.puck.tile.toggleWall(2)
-			case ebiten.KeyA:
-				g.puck.tile.toggleWall(3)
-			}
+	case ebiten.Key:
+		k := v
+		switch k {
+		case ebiten.KeyBackspace:
+			GSM.Switch(NewMenu())
+		case ebiten.KeyW:
+			g.puck.tile.toggleWall(0)
+		case ebiten.KeyD:
+			g.puck.tile.toggleWall(1)
+		case ebiten.KeyS:
+			g.puck.tile.toggleWall(2)
+		case ebiten.KeyA:
+			g.puck.tile.toggleWall(3)
 		}
 	}
-
 }
 
 // Size returns the size of the grid in pixels
