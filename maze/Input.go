@@ -87,4 +87,9 @@ func (i *Input) Update() {
 	// 	}
 	// }
 
+	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
+		if inpututil.IsKeyJustPressed(k) {
+			i.Notify(k)
+		}
+	}
 }

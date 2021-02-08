@@ -13,7 +13,6 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"oddstream.games/gomaze/util"
 )
 
@@ -105,17 +104,36 @@ func NewGrid(w, h, ghostCount int) *Grid {
 
 // NotifyCallback is called by the Subject (Input) when something interesting happens
 func (g *Grid) NotifyCallback(event interface{}) {
-	pt := event.(image.Point)
-	pt.X = pt.X - int(CameraX)
-	pt.Y = pt.Y - int(CameraY)
-	t := g.findTileAt(pt)
-	if t != nil {
-		// println("input on tile", t.X, t.Y, t.wallCount())
-		if t.wallCount() < 4 {
-			g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
-			g.puck.ThrowBallTo(t)
+	pt, ok := event.(image.Point)
+	if ok {
+		pt.X = pt.X - int(CameraX)
+		pt.Y = pt.Y - int(CameraY)
+		t := g.findTileAt(pt)
+		if t != nil {
+			// println("input on tile", t.X, t.Y, t.wallCount())
+			if t.wallCount() < 4 {
+				g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
+				g.puck.ThrowBallTo(t)
+			}
+		}
+	} else {
+		k, ok := event.(ebiten.Key)
+		if ok {
+			switch k {
+			case ebiten.KeyBackspace:
+				GSM.Switch(NewMenu())
+			case ebiten.KeyW:
+				g.puck.tile.toggleWall(0)
+			case ebiten.KeyD:
+				g.puck.tile.toggleWall(1)
+			case ebiten.KeyS:
+				g.puck.tile.toggleWall(2)
+			case ebiten.KeyA:
+				g.puck.tile.toggleWall(3)
+			}
 		}
 	}
+
 }
 
 // Size returns the size of the grid in pixels
@@ -311,32 +329,11 @@ func (g *Grid) Layout(outsideWidth, outsideHeight int) (int, int) {
 // Update the board state (transitions, user input)
 func (g *Grid) Update() error {
 
-	switch {
-	case inpututil.IsKeyJustReleased(ebiten.KeyBackspace):
-		GSM.Switch(NewMenu())
-	case inpututil.IsKeyJustReleased(ebiten.KeyW):
-		g.puck.tile.toggleWall(0)
-	case inpututil.IsKeyJustReleased(ebiten.KeyD):
-		g.puck.tile.toggleWall(1)
-	case inpututil.IsKeyJustReleased(ebiten.KeyS):
-		g.puck.tile.toggleWall(2)
-	case inpututil.IsKeyJustReleased(ebiten.KeyA):
-		g.puck.tile.toggleWall(3)
-	case inpututil.IsKeyJustReleased(ebiten.KeyUp):
-		g.puck.bulldoze(0)
-	case inpututil.IsKeyJustReleased(ebiten.KeyRight):
-		g.puck.bulldoze(1)
-	case inpututil.IsKeyJustReleased(ebiten.KeyDown):
-		g.puck.bulldoze(2)
-	case inpututil.IsKeyJustReleased(ebiten.KeyLeft):
-		g.puck.bulldoze(3)
-	}
+	g.input.Update()
 
 	for _, t := range g.tiles {
 		t.Update() // doesn't do anything at the moment
 	}
-
-	g.input.Update()
 
 	count := 0
 	for _, gh := range g.ghosts {

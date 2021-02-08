@@ -4,6 +4,7 @@ package maze
 
 import (
 	"image"
+	"os"
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -43,9 +44,18 @@ func NewTextButton(str string, w int, h int, btnFont font.Face, actionFn func(),
 
 // NotifyCallback is called by the Subject (Input) when something interesting happens
 func (tb *TextButton) NotifyCallback(event interface{}) {
-	pt := event.(image.Point)
-	if util.InRect(pt, tb.Rect) {
-		tb.Action()
+	pt, ok := event.(image.Point)
+	if ok {
+		if util.InRect(pt, tb.Rect) {
+			tb.Action()
+		}
+	} else {
+		k, ok := event.(ebiten.Key)
+		if ok {
+			if k == ebiten.KeyBackspace {
+				os.Exit(0)
+			}
+		}
 	}
 }
 

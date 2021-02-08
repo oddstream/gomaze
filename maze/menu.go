@@ -3,10 +3,7 @@
 package maze
 
 import (
-	"os"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // Widget is an interface for widget objects
@@ -69,10 +66,6 @@ func (s *Menu) Layout(outsideWidth, outsideHeight int) (int, int) {
 func (s *Menu) Update() error {
 
 	s.input.Update()
-
-	if inpututil.IsKeyJustReleased(ebiten.KeyBackspace) {
-		os.Exit(0)
-	}
 
 	return nil
 }
