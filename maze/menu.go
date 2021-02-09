@@ -6,20 +6,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Widget is an interface for widget objects
-type Widget interface {
-	Update() error
-	Draw(*ebiten.Image)
-	SetPosition(int, int)
-	Rect() (int, int, int, int)
-	Action()
-}
-
-// Pushable type implements Rect
-// type Pushable interface {
-// 	Rect() (int, int, int, int)
-// }
-
 // Menu represents a game state.
 type Menu struct {
 	widgets []Widget
@@ -36,7 +22,11 @@ func NewMenu() *Menu {
 		NewLabel("Move the yellow blob by clicking where you want it to go", TheAcmeFonts.normal),
 		NewLabel("Build/demolish walls using the WASD keys", TheAcmeFonts.normal),
 		NewLabel("Herd the kittens into the square in the middle", TheAcmeFonts.normal),
-		NewTextButton("START", 200, 50, TheAcmeFonts.normal, func() { TheUserData.CompletedLevels = 0; GSM.Switch(NewCutscene()) }, i),
+		NewTextButton("START", 200, 50, TheAcmeFonts.normal, func() {
+			TheUserData.CompletedLevels = 0
+			TheUserData.Save()
+			GSM.Switch(NewCutscene())
+		}, i),
 	}
 
 	if TheUserData.CompletedLevels > 0 {

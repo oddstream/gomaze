@@ -41,12 +41,12 @@ var LevelData = [][]int{
 	{17, 13, 7},
 	{19, 15, 7},
 	{21, 17, 8},
-	{23, 19, 8},
 }
 
 // NewGame generates a new Game object.
 func NewGame() (*Game, error) {
 	g := &Game{}
+	// println("LevelData", len(LevelData))
 
 	GSM.Switch(NewSplash())
 

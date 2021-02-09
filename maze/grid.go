@@ -378,8 +378,14 @@ func (g *Grid) Update() error {
 	}
 	if count == len(g.ghosts) {
 		TheUserData.CompletedLevels++
-		TheUserData.Save()
-		GSM.Switch(NewCutscene())
+		if TheUserData.CompletedLevels >= len(LevelData) {
+			TheUserData.CompletedLevels = 0
+			TheUserData.Save()
+			GSM.Switch(NewGameover())
+		} else {
+			TheUserData.Save()
+			GSM.Switch(NewCutscene())
+		}
 	}
 
 	g.puck.Update()
