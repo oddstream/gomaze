@@ -3,6 +3,7 @@
 package maze
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -27,6 +28,7 @@ const (
 var (
 	tileImageLibrary map[uint]*ebiten.Image
 	dotImage         *ebiten.Image
+	unreachableImage *ebiten.Image
 	overSize         float64
 	halfTileSize     float64
 	wallbits         = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
@@ -51,6 +53,14 @@ func init() {
 	halfTileSize = float64(actualTileSize) / 2
 	overSize = float64((actualTileSize - TileSize) / 2)
 
+	{
+		dc := gg.NewContext(TileSize, TileSize)
+		dc.SetRGBA(0, 0, 0, 0.1)
+		dc.DrawRectangle(0, 0, float64(TileSize), float64(TileSize))
+		dc.Fill()
+		dc.Stroke()
+		unreachableImage = ebiten.NewImageFromImage(dc.Image())
+	}
 	{
 		mid := float64(actualTileSize / 2)
 		dc := gg.NewContext(actualTileSize, actualTileSize)
@@ -193,6 +203,11 @@ func (t *Tile) Position() (float64, float64) {
 	// return t.worldX, t.worldY
 }
 
+// String representation of this tile
+func (t *Tile) String() string {
+	return fmt.Sprintf("[%v,%v]", t.X, t.Y)
+}
+
 // AllTiles applies a func to all tiles
 // func (t *Tile) AllTiles(fn func(*Tile)) {
 // 	t.G.AllTiles(fn)
@@ -225,6 +240,13 @@ func (t *Tile) debugText(screen *ebiten.Image, str string) {
 // Draw renders a Tile object
 func (t *Tile) Draw(screen *ebiten.Image) {
 
+	if !t.visited {
+		op2 := &ebiten.DrawImageOptions{}
+		op2.GeoM.Translate(t.worldX, t.worldY)
+		op2.GeoM.Translate(CameraX, CameraY)
+		screen.DrawImage(unreachableImage, op2)
+	}
+
 	// scale, point translation, rotate, object translation
 
 	op := &ebiten.DrawImageOptions{}
@@ -235,17 +257,18 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	// Reset RGB (not Alpha) forcibly
 	// tilesheet already has black shapes
 	{
-		op.ColorM.Scale(0, 0, 0, 1)
-		r := float64(TheGrid.colorWall.R) / 0xff
-		g := float64(TheGrid.colorWall.G) / 0xff
-		b := float64(TheGrid.colorWall.B) / 0xff
+		var r, g, b float64
+		// op.ColorM.Scale(0, 0, 0, 1)
+		r = float64(TheGrid.colorWall.R) / 0xff
+		g = float64(TheGrid.colorWall.G) / 0xff
+		b = float64(TheGrid.colorWall.B) / 0xff
 		op.ColorM.Translate(r, g, b, 0)
 	}
 
 	screen.DrawImage(tileImageLibrary[t.walls], op)
 
 	if t.marked {
-		op.ColorM.Scale(0, 0, 0, 1)
+		// op.ColorM.Scale(0, 0, 0, 1)
 		op.ColorM.Translate(1, 1, 0, 0)
 		screen.DrawImage(dotImage, op)
 	}

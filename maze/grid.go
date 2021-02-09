@@ -123,12 +123,20 @@ func (g *Grid) NotifyCallback(event interface{}) {
 			GSM.Switch(NewMenu())
 		case ebiten.KeyW:
 			g.puck.tile.toggleWall(0)
+			g.visitTiles()
 		case ebiten.KeyD:
 			g.puck.tile.toggleWall(1)
+			g.visitTiles()
 		case ebiten.KeyS:
 			g.puck.tile.toggleWall(2)
+			g.visitTiles()
 		case ebiten.KeyA:
 			g.puck.tile.toggleWall(3)
+			g.visitTiles()
+		case ebiten.KeyC:
+			g.fillCulDeSacs()
+		case ebiten.KeyR:
+			g.createRooms()
 		}
 	}
 }
@@ -271,6 +279,31 @@ func (g *Grid) CreateNextLevel(ghostCount int) {
 	palette := Palettes[rand.Int()%len(Palettes)]
 	g.colorBackground = CalcBackgroundColor(palette)
 	g.colorWall = ExtendedColors[palette[0]]
+}
+
+func (g *Grid) visitTiles() {
+	g.AllTiles(func(t *Tile) { t.visited = false; t.parent = nil })
+	t := g.findTile(TilesAcross/2, TilesDown/2)
+	q := []*Tile{t}
+	t.parent = t
+	for len(q) > 0 {
+		t := q[0]
+		t.visited = true
+		q = q[1:] // take first tile off front of queue
+		for d := 0; d < 4; d++ {
+			if t.IsWall(d) {
+				continue
+			}
+			tn := t.Neighbour(d)
+			if tn == nil {
+				log.Fatal("open unwalled edge found in visitTiles BFS")
+			}
+			if tn.parent == nil {
+				tn.parent = t
+				q = append(q, tn)
+			}
+		}
+	}
 }
 
 // DrawMinimap shows position of ghosts

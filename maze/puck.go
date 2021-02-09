@@ -3,6 +3,7 @@
 package maze
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/fogleman/gg"
@@ -111,6 +112,11 @@ func (p *Puck) bulldoze(d int) {
 			p.bulldozing = true
 		}
 	}
+}
+
+// String representation of puck
+func (p *Puck) String() string {
+	return fmt.Sprintf("(%v,%v)", p.tile.X, p.tile.Y)
 }
 
 // Update the state/position of the Puck

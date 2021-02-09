@@ -3,15 +3,17 @@
 package maze
 
 import (
+	"fmt"
+
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
 	"oddstream.games/gomaze/util"
 )
 
-// Ball defines the yellow blob/player avatar
+// Ball defines the target destination of the yellow blob/player avatar
 type Ball struct {
-	tile *Tile // Tile we are sitting on
-	dest *Tile // Tile we have been thrown to
+	tile *Tile // Tile ball is sitting on
+	dest *Tile // Tile ball has been thrown to
 
 	ballImage *ebiten.Image
 
@@ -43,6 +45,11 @@ func (b *Ball) ThrowTo(to *Tile) {
 	b.srcX, b.srcY = b.tile.Position()
 	b.dstX, b.dstY = b.dest.Position()
 	b.lerpstep = 0.05
+}
+
+// String representation of this ball
+func (b *Ball) String() string {
+	return fmt.Sprintf("(%v,%v)", b.tile.X, b.tile.Y)
 }
 
 // Tile getter for ball's location
