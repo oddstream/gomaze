@@ -82,10 +82,14 @@ func NewGrid(w, h, ghostCount int) *Grid {
 		}
 		dc := gg.NewContext(TileSize*3, TileSize*3)
 		dc.SetRGBA(float64(g.colorBackground.R/0xff), float64(g.colorBackground.G/0xff), float64(g.colorBackground.B/0xff), 0.5)
-		// dc.SetColor(g.colorBackground)
 		dc.DrawRoundedRectangle(0, 0, float64(TileSize*3), float64(TileSize*3), float64(TileSize/12))
 		dc.Fill()
 		dc.Stroke()
+
+		dc.SetRGBA(float64(g.colorBackground.R/0xff), float64(g.colorBackground.G/0xff), float64(g.colorBackground.B/0xff), 0.1)
+		dc.SetFontFace(TheAcmeFonts.huge)
+		dc.DrawStringAnchored(fmt.Sprint(TheUserData.CompletedLevels+1), float64(TileSize)*1.5, float64(TileSize), 0.5, 0.5)
+
 		g.penImage = ebiten.NewImageFromImage(dc.Image())
 
 		t := g.findTile(midX-1, midY-1)
@@ -373,7 +377,9 @@ func (g *Grid) Update() error {
 		}
 	}
 	if count == len(g.ghosts) {
-		GSM.Switch(NewCutscene(TilesAcross+2, TilesDown+2, len(g.ghosts)+1))
+		TheUserData.CompletedLevels++
+		TheUserData.Save()
+		GSM.Switch(NewCutscene())
 	}
 
 	g.puck.Update()

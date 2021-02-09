@@ -67,7 +67,6 @@ func createImage(dir int) *ebiten.Image {
 	// }
 	// dc.ClosePath()
 	// dc.Fill()
-	// end
 
 	dc.SetRGB(1, 1, 1)
 	dc.DrawCircle(mid-10, mid-2, 8)
@@ -79,17 +78,17 @@ func createImage(dir int) *ebiten.Image {
 		dc.DrawCircle(mid-10, mid-2, 4)
 		dc.DrawCircle(mid+10, mid-2, 4)
 	case 0: // NORTH
-		dc.DrawCircle(mid-10, mid-4, 4)
-		dc.DrawCircle(mid+10, mid-4, 4)
+		dc.DrawCircle(mid-10, mid-6, 4)
+		dc.DrawCircle(mid+10, mid-6, 4)
 	case 1: // EAST
-		dc.DrawCircle(mid-10+2, mid-2, 4)
-		dc.DrawCircle(mid+10+2, mid-2, 4)
+		dc.DrawCircle(mid-10+4, mid-2, 4)
+		dc.DrawCircle(mid+10+4, mid-2, 4)
 	case 2: //SOUTH
 		dc.DrawCircle(mid-10, mid+2, 4)
 		dc.DrawCircle(mid+10, mid+2, 4)
 	case 3: // WEST
-		dc.DrawCircle(mid-10-2, mid-2, 4)
-		dc.DrawCircle(mid+10-2, mid-2, 4)
+		dc.DrawCircle(mid-10-4, mid-2, 4)
+		dc.DrawCircle(mid+10-4, mid-2, 4)
 	}
 	dc.Fill()
 	dc.Stroke()

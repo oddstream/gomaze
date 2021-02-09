@@ -32,14 +32,17 @@ func NewMenu() *Menu {
 	s := &Menu{input: i}
 
 	s.widgets = []Widget{
-		NewLabel("CAN YOU HERD KITTENS?", Acme.large),
-		NewLabel("Move the yellow blob by clicking where you want it to go", Acme.normal),
-		NewLabel("Build/demolish walls using the WASD keys", Acme.normal),
-		NewLabel("Herd the kittens into the square in the middle", Acme.normal),
-		NewTextButton("START", 200, 50, Acme.normal, func() { GSM.Switch(NewCutscene(7, 5, 4)) }, i),
-		// NewTextButton("NORMAL", 200, 50, Acme.normal, func() { GSM.Switch(NewCutscene(15, 11, 4)) }),
-		// NewTextButton("LARGE", 200, 50, Acme.large, func() { GSM.Switch(NewCutscene(21, 17, 8)) }),
-		// NewTextButton("EXCESSIVE", 200, 50, Acme.normal, func() { GSM.Switch(NewCutscene(31, 23, 8)) }),
+		NewLabel("CAN YOU HERD KITTENS?", TheAcmeFonts.large),
+		NewLabel("Move the yellow blob by clicking where you want it to go", TheAcmeFonts.normal),
+		NewLabel("Build/demolish walls using the WASD keys", TheAcmeFonts.normal),
+		NewLabel("Herd the kittens into the square in the middle", TheAcmeFonts.normal),
+		NewTextButton("START", 200, 50, TheAcmeFonts.normal, func() { TheUserData.CompletedLevels = 0; GSM.Switch(NewCutscene()) }, i),
+	}
+
+	if TheUserData.CompletedLevels > 0 {
+		s.widgets = append(s.widgets,
+			NewTextButton("CONTINUE", 200, 50, TheAcmeFonts.normal, func() { GSM.Switch(NewCutscene()) }, i),
+		)
 	}
 
 	return s
@@ -49,10 +52,10 @@ func NewMenu() *Menu {
 func (s *Menu) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 	xCenter := outsideWidth / 2
-	// create len(widgets) + 1 vertical slots
-	yPlaces := [6]int{} // golang gotcha: can't use len(s.widgets)
-	for i := 0; i < len(yPlaces); i++ {
-		yPlaces[i] = (outsideHeight / len(yPlaces)) * i
+	yPlaces := []int{} // golang gotcha: can't use len(s.widgets) to make an array
+	slots := len(s.widgets) + 1
+	for i := 0; i < slots; i++ {
+		yPlaces = append(yPlaces, (outsideHeight/slots)*i)
 	}
 
 	for i, w := range s.widgets {

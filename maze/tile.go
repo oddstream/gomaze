@@ -101,6 +101,7 @@ func NewTile(x, y int) *Tile {
 func (t *Tile) Reset() {
 	t.walls = MASK
 	t.visited = false
+	t.parent = nil
 }
 
 // Rect gives the x,y screen coords of the tile's top left and bottom right corners
@@ -225,7 +226,7 @@ func (t *Tile) Update() error {
 }
 
 func (t *Tile) debugText(screen *ebiten.Image, str string) {
-	bound, _ := font.BoundString(Acme.large, str)
+	bound, _ := font.BoundString(TheAcmeFonts.large, str)
 	w := (bound.Max.X - bound.Min.X).Ceil()
 	h := (bound.Max.Y - bound.Min.Y).Ceil()
 	x, y := t.worldX-overSize, t.worldY-overSize
@@ -234,7 +235,7 @@ func (t *Tile) debugText(screen *ebiten.Image, str string) {
 	c := color.RGBA{R: 0xff - colorBackground.R, G: 0xff - colorBackground.G, B: 0xff - colorBackground.B, A: 0xff}
 	// var c color.Color = BasicColors["Black"]
 	// ebitenutil.DrawRect(screen, float64(tx), float64(ty), float64(w), float64(h), c)
-	text.Draw(screen, str, Acme.large, tx, ty, c)
+	text.Draw(screen, str, TheAcmeFonts.large, tx, ty, c)
 }
 
 // Draw renders a Tile object

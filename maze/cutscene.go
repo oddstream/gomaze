@@ -12,15 +12,14 @@ import (
 
 // Cutscene represents a game state.
 type Cutscene struct {
-	newWidth, newHeight, newGhosts int
-	circleImage                    *ebiten.Image
-	circlePos                      image.Point
-	startX, finishX                int
+	circleImage     *ebiten.Image
+	circlePos       image.Point
+	startX, finishX int
 }
 
 // NewCutscene creates and initializes a Cutscene/GameState object
-func NewCutscene(newWidth, newHeight, newGhosts int) *Cutscene {
-	cs := &Cutscene{newWidth: newWidth, newHeight: newHeight, newGhosts: newGhosts}
+func NewCutscene() *Cutscene {
+	cs := &Cutscene{}
 
 	dc := gg.NewContext(200, 200)
 	dc.SetRGB(1, 1, 0)
@@ -49,7 +48,8 @@ func (cs *Cutscene) Update() error {
 
 	cs.circlePos.X += 20
 	if cs.circlePos.X > cs.finishX {
-		TheGrid = NewGrid(cs.newWidth, cs.newHeight, cs.newGhosts)
+		lvl := TheUserData.CompletedLevels
+		TheGrid = NewGrid(LevelData[lvl][0], LevelData[lvl][1], LevelData[lvl][2])
 		GSM.Switch(TheGrid)
 	}
 

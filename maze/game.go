@@ -21,11 +21,28 @@ var (
 // GSM provides global access to the game state manager
 var GSM *GameStateManager = &GameStateManager{}
 
-// Acme provides access to small, normal, large, huge Acme fonts
-var Acme *AcmeFonts = NewAcmeFonts()
+// TheAcmeFonts provides access to small, normal, large, huge Acme fonts
+var TheAcmeFonts *AcmeFonts = NewAcmeFonts()
 
 // TheGrid points to the Grid currently being played
 var TheGrid *Grid
+
+// TheUserData holds serialized game progress data
+var TheUserData = NewUserData()
+
+// LevelData width,height,ghosts
+var LevelData = [][]int{
+	{7, 5, 4},
+	{7, 7, 4},
+	{9, 7, 5},
+	{11, 7, 5},
+	{13, 9, 6},
+	{15, 11, 6},
+	{17, 13, 7},
+	{19, 15, 7},
+	{21, 17, 8},
+	{23, 19, 8},
+}
 
 // NewGame generates a new Game object.
 func NewGame() (*Game, error) {
