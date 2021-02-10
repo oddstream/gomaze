@@ -4,7 +4,6 @@ package maze
 
 import (
 	"fmt"
-	"image"
 	"image/color"
 	"log"
 	"math/bits"
@@ -26,14 +25,14 @@ const (
 )
 
 var (
-	tileImageLibrary map[uint]*ebiten.Image
-	dotImage         *ebiten.Image
-	unreachableImage *ebiten.Image
-	overSize         float64
-	halfTileSize     float64
-	wallbits         = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
-	wallopps         = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
-	oppdirs          = [4]int{2, 3, 0, 1}
+	reachableImages   map[uint]*ebiten.Image
+	unreachableImages map[uint]*ebiten.Image
+	dotImage          *ebiten.Image
+	overSize          float64
+	halfTileSize      float64
+	wallbits          = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
+	wallopps          = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
+	oppdirs           = [4]int{2, 3, 0, 1}
 )
 
 func init() {
@@ -41,26 +40,23 @@ func init() {
 		log.Fatal("Tile dimensions not set")
 	}
 
-	var makeFunc func(uint) image.Image = makeTile
-	tileImageLibrary = make(map[uint]*ebiten.Image, 16)
+	// var makeFunc func(uint) image.Image = makeTile
+	reachableImages = make(map[uint]*ebiten.Image, 16)
 	for i := uint(0); i < 16; i++ {
-		img := makeFunc(i)
-		tileImageLibrary[i] = ebiten.NewImageFromImage(img)
+		img := makeTileImage(i, false)
+		reachableImages[i] = ebiten.NewImageFromImage(img)
+	}
+	unreachableImages = make(map[uint]*ebiten.Image, 16)
+	for i := uint(0); i < 16; i++ {
+		img := makeTileImage(i, true)
+		unreachableImages[i] = ebiten.NewImageFromImage(img)
 	}
 
 	// the tiles are all the same size, so pre-calc some useful variables
-	actualTileSize, _ := tileImageLibrary[0].Size()
+	actualTileSize, _ := reachableImages[0].Size()
 	halfTileSize = float64(actualTileSize) / 2
 	overSize = float64((actualTileSize - TileSize) / 2)
 
-	{
-		dc := gg.NewContext(TileSize, TileSize)
-		dc.SetRGBA(0, 0, 0, 0.1)
-		dc.DrawRectangle(0, 0, float64(TileSize), float64(TileSize))
-		dc.Fill()
-		dc.Stroke()
-		unreachableImage = ebiten.NewImageFromImage(dc.Image())
-	}
 	{
 		mid := float64(actualTileSize / 2)
 		dc := gg.NewContext(actualTileSize, actualTileSize)
@@ -241,12 +237,23 @@ func (t *Tile) debugText(screen *ebiten.Image, str string) {
 // Draw renders a Tile object
 func (t *Tile) Draw(screen *ebiten.Image) {
 
-	if !t.visited {
-		op2 := &ebiten.DrawImageOptions{}
-		op2.GeoM.Translate(t.worldX, t.worldY)
-		op2.GeoM.Translate(CameraX, CameraY)
-		screen.DrawImage(unreachableImage, op2)
-	}
+	// if float64(TileSize)+t.worldX+CameraX < 0 {
+	// 	return
+	// }
+	// if float64(TileSize)+t.worldY+CameraY < 0 {
+	// 	return
+	// }
+
+	// screenWidth, screenHeight := screen.Size()
+
+	// if t.worldX+CameraX > float64(screenWidth) {
+	// 	return
+	// }
+	// if t.worldY+CameraY > float64(screenHeight) {
+	// 	return
+	// }
+
+	// a separate unreachable image had performance hit on big grids
 
 	// scale, point translation, rotate, object translation
 
@@ -266,7 +273,12 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 		op.ColorM.Translate(r, g, b, 0)
 	}
 
-	screen.DrawImage(tileImageLibrary[t.walls], op)
+	if t.visited {
+		screen.DrawImage(reachableImages[t.walls], op)
+	} else {
+		screen.DrawImage(unreachableImages[t.walls], op)
+
+	}
 
 	if t.marked {
 		// op.ColorM.Scale(0, 0, 0, 1)

@@ -1,6 +1,5 @@
 $ GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o ../oddstream.github.io/Herding/gomaze.wasm
 
-+ slowdown on large levels
 + WASM: save state to localStorage
 + Cutscene gets level data from some table somewhere
 + score based on time, number of moves

@@ -10,7 +10,7 @@ import (
 )
 
 // return an image.Image that is bigger than the tile size requested so endcaps are visible
-func makeTile(walls uint) image.Image {
+func makeTileImage(walls uint, unreachable bool) image.Image {
 
 	tileSizeEx := TileSize + (TileSize / 6) // same as linewidth
 
@@ -23,6 +23,14 @@ func makeTile(walls uint) image.Image {
 	w := margin
 
 	dc := gg.NewContext(tileSizeEx, tileSizeEx)
+
+	if !unreachable {
+		dc.SetRGBA(0, 0, 0, 0.2)
+		dc.DrawRectangle(margin, margin, float64(TileSize), float64(TileSize))
+		dc.Fill()
+		dc.Stroke()
+	}
+
 	dc.SetRGB(0, 0, 0)
 	dc.SetLineWidth(lineWidth)
 	dc.SetLineCap(gg.LineCapRound)
