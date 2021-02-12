@@ -320,7 +320,7 @@ func (g *Grid) getMinimap(screen *ebiten.Image) *ebiten.Image {
 	worldWidth, worldHeight := float64(TilesAcross*TileSize), float64(TilesDown*TileSize)
 	mapWidth, mapHeight := worldWidth/10, worldHeight/10
 
-	if g.ticks%10 == 0 && g.minimapImage != nil {
+	if g.ticks%10 != 0 && g.minimapImage != nil {
 		return g.minimapImage
 	}
 
