@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
@@ -33,14 +34,17 @@ var (
 
 // Grid is an object representing the grid of tiles
 type Grid struct {
-	tiles           []*Tile // a slice (not array!) of pointers to Tile objects
-	colorBackground color.RGBA
-	colorWall       color.RGBA
-	input           *Input
-	puck            *Puck
-	ghosts          []*Ghost
-	penImage        *ebiten.Image
-	penX, penY      float64
+	ticks              int
+	tiles              []*Tile // a slice (not array!) of pointers to Tile objects
+	colorBackground    color.RGBA
+	colorWall          color.RGBA
+	input              *Input
+	puck               *Puck
+	ghosts             []*Ghost
+	penImage           *ebiten.Image
+	penX, penY         float64
+	minimapImage       *ebiten.Image
+	minimapX, minimapY float64
 }
 
 // NewGrid create a Grid object
@@ -282,7 +286,7 @@ func (g *Grid) CreateNextLevel(ghostCount int) {
 
 	palette := Palettes[rand.Int()%len(Palettes)]
 	g.colorBackground = CalcBackgroundColor(palette)
-	g.colorWall = ExtendedColors[palette[0]]
+	g.colorWall = ExtendedColors[palette[rand.Int()%len(palette)]]
 }
 
 func (g *Grid) visitTiles() {
@@ -310,14 +314,15 @@ func (g *Grid) visitTiles() {
 	}
 }
 
-// DrawMinimap shows position of ghosts
-func (g *Grid) DrawMinimap(screen *ebiten.Image) {
-	screenWidth, _ := screen.Size()
-	worldWidth, worldHeight := float64(TilesAcross*TileSize), float64(TilesDown*TileSize)
+// getMinimap shows position of ghosts
+func (g *Grid) getMinimap(screen *ebiten.Image) *ebiten.Image {
 
-	// mapWidth, mapHeight := float64(screenWidth/10), float64(screenHeight/10)
+	worldWidth, worldHeight := float64(TilesAcross*TileSize), float64(TilesDown*TileSize)
 	mapWidth, mapHeight := worldWidth/10, worldHeight/10
-	mapX, mapY := float64(screenWidth)-mapWidth, 0 //float64(screenHeight)-mapHeight
+
+	if g.ticks%10 == 0 && g.minimapImage != nil {
+		return g.minimapImage
+	}
 
 	halfTileSize := float64(TileSize / 2)
 
@@ -343,16 +348,19 @@ func (g *Grid) DrawMinimap(screen *ebiten.Image) {
 	}
 
 	dc.Stroke()
-	mapImg := ebiten.NewImageFromImage(dc.Image())
 
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(mapX), float64(mapY))
-	screen.DrawImage(mapImg, op)
+	g.minimapImage = ebiten.NewImageFromImage(dc.Image())
 
+	return g.minimapImage
 }
 
 // Layout implements ebiten.Game's Layout.
 func (g *Grid) Layout(outsideWidth, outsideHeight int) (int, int) {
+
+	worldWidth := float64(TilesAcross * TileSize)
+	mapWidth := worldWidth / 10
+	g.minimapX, g.minimapY = float64(outsideWidth)-mapWidth, 0
+
 	for _, t := range g.tiles {
 		t.Layout()
 	}
@@ -362,6 +370,11 @@ func (g *Grid) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 // Update the board state (transitions, user input)
 func (g *Grid) Update() error {
+
+	g.ticks++
+	if g.ticks > int(ebiten.CurrentTPS()) {
+		g.ticks = 0
+	}
 
 	g.input.Update()
 
@@ -415,9 +428,18 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 
 	g.puck.Draw(screen)
 
-	g.DrawMinimap(screen)
+	{
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(g.minimapX, g.minimapY)
+		screen.DrawImage(g.getMinimap(screen), op)
+	}
 
 	if DebugMode {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("grid:%d,%d camera:%v,%v puck:%v,%v", TilesAcross, TilesDown, CameraX, CameraY, g.puck.tile.X, g.puck.tile.Y))
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS %v, FPS %v, grid %d,%d camera %v,%v puck %v,%v",
+			math.Ceil(ebiten.CurrentTPS()),
+			math.Ceil(ebiten.CurrentFPS()),
+			TilesAcross, TilesDown,
+			CameraX, CameraY,
+			g.puck.tile.X, g.puck.tile.Y))
 	}
 }
