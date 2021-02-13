@@ -143,7 +143,7 @@ func (p *Puck) Update() error {
 				p.dest = tn
 				p.srcX, p.srcY = p.tile.Position()
 				p.dstX, p.dstY = p.dest.Position()
-				p.lerpstep = 0.05
+				p.lerpstep = 0
 				break
 			}
 		}

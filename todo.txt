@@ -1,7 +1,13 @@
 $ GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o ../oddstream.github.io/Herding/gomaze.wasm
+$ cd ~/gomaze && /home/gilbert/go/bin/wasmserve oddstream.games/gomaze
+  (no need to build .wasm file first)
 
 + WASM: save state to localStorage
-+ Cutscene gets level data from some table somewhere
+  https://github.com/golang/go/wiki/WebAssembly
+  https://pkg.go.dev/syscall/js
+  https://github.com/dennwc/dom
+? https://tinygo.org/
+? ghosts that hide in cul-de-sacs, different colors
 + score based on time, number of moves
 + menu becomes level select those unlocked
 + title, status bars

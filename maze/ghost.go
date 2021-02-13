@@ -23,6 +23,8 @@ func init() {
 	directionlessImage = ebiten.NewImageFromImage(makeGhostImage(-1))
 }
 
+type dirfunc func(int) int
+
 // Ghost defines the yellow blob/player avatar
 type Ghost struct {
 	tile                   *Tile   // tile we are sitting on
@@ -30,29 +32,58 @@ type Ghost struct {
 	facing                 int     // 0,1,2,3
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
-
-	worldX, worldY float64
+	dirfuncs               [4]dirfunc
+	speed                  float64
+	worldX, worldY         float64
 }
 
 // NewGhost creates a new Ghost object
 func NewGhost(start *Tile) *Ghost {
-	g := &Ghost{tile: start}
-
-	g.facing = 0
-	g.worldX, g.worldY = g.tile.Position()
-
-	return g
+	gh := &Ghost{tile: start}
+	gh.facing = rand.Intn(3)
+	if rand.Float64() < 0.5 {
+		gh.dirfuncs = [4]dirfunc{util.Leftward, util.Forward, util.Rightward, util.Backward}
+		gh.speed = 0.01
+	} else {
+		gh.dirfuncs = [4]dirfunc{util.Rightward, util.Forward, util.Leftward, util.Backward}
+		gh.speed = 0.015
+	}
+	gh.worldX, gh.worldY = gh.tile.Position()
+	return gh
 }
 
-func (gh *Ghost) isDirOkay(dir int) bool {
+func (gh *Ghost) isPuckVisible(d int) bool {
+	for t := gh.tile; !t.IsWall(d); t = t.Neighbour(d) {
+		if t == TheGrid.puck.tile {
+			return true
+		}
+	}
+	return false
+}
+
+func (gh *Ghost) isDirOkay(d int) bool {
 	// can't go through walls
-	if gh.tile.IsWall(dir) {
+	if gh.tile.IsWall(d) {
 		return false
 	}
-	// don't like going where puck is
-	if TheGrid.puck.tile == gh.tile.Neighbour(dir) {
+
+	tn := gh.tile.Neighbour(d)
+
+	// don't like puck
+	if tn == TheGrid.puck.tile {
 		return false
 	}
+
+	// also chase the ball
+	if tn.marked {
+		return true
+	}
+
+	// don't like going towards puck
+	// if gh.isPuckVisible(d) {
+	// 	return false
+	// }
+
 	// don't leave the pen - this makes it too easy
 	// if gh.tile.pen {
 	// 	tn := gh.tile.Neighbour(dir)
@@ -65,10 +96,11 @@ func (gh *Ghost) isDirOkay(dir int) bool {
 		if g == gh {
 			continue
 		}
-		if g.dest == gh.tile.Neighbour(dir) {
+		if g.dest == tn {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -76,22 +108,16 @@ func (gh *Ghost) isDirOkay(dir int) bool {
 func (gh *Ghost) Update() error {
 
 	if gh.dest == nil {
-		var dirfuncs [4]func(int) int
-		if rand.Float64() < 0.5 {
-			dirfuncs = [4]func(int) int{util.Leftward, util.Forward, util.Rightward, util.Backward}
-		} else {
-			dirfuncs = [4]func(int) int{util.Rightward, util.Forward, util.Leftward, util.Backward}
-		}
-		for i := 0; i < 4; i++ {
-			dir := dirfuncs[i](gh.facing)
-			if gh.isDirOkay(dir) {
-				gh.facing = dir
-				gh.dest = gh.tile.Neighbour(dir)
+		for d := 0; d < 4; d++ {
+			newd := gh.dirfuncs[d](gh.facing)
+			if gh.isDirOkay(newd) {
+				gh.facing = newd
+				gh.dest = gh.tile.Neighbour(newd)
 				break
 			}
 		}
 		if gh.dest != nil {
-			gh.lerpstep = 0.01
+			gh.lerpstep = 0
 			gh.srcX, gh.srcY = gh.tile.Position()
 			gh.dstX, gh.dstY = gh.dest.Position()
 		} else {
@@ -106,7 +132,7 @@ func (gh *Ghost) Update() error {
 		} else {
 			gh.worldX = util.Lerp(gh.srcX, gh.dstX, gh.lerpstep)
 			gh.worldY = util.Lerp(gh.srcY, gh.dstY, gh.lerpstep)
-			gh.lerpstep += 0.01
+			gh.lerpstep += gh.speed
 		}
 	}
 
