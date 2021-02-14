@@ -1,4 +1,4 @@
-// Copyright ©️ 2021 oddstream.games
+// +build desktop
 
 package maze
 
@@ -46,12 +46,12 @@ func makeConfigDir() {
 // it always returns an object, even if file does not exist
 func NewUserData() *UserData {
 
+	if runtime.GOARCH == "wasm" {
+		log.Fatal("WASM detected")
+	}
+
 	ud := &UserData{Copyright: "Copyright ©️ 2021 oddstream.games"}
 	// let CompletedLevels default to zero
-
-	if runtime.GOARCH == "wasm" {
-		return ud
-	}
 
 	path, err := fullPath()
 	if err != nil {
@@ -82,7 +82,7 @@ func NewUserData() *UserData {
 func (ud *UserData) Save() {
 
 	if runtime.GOARCH == "wasm" {
-		return
+		log.Fatal("WASM detected")
 	}
 
 	bytes, err := json.Marshal(ud)
