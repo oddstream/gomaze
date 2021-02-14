@@ -3,9 +3,9 @@
 package maze
 
 import (
+	"encoding/json"
 	"log"
 	"runtime"
-	"strconv"
 	"syscall/js"
 )
 
@@ -28,19 +28,15 @@ func NewUserData() *UserData {
 	println("NewUserData: runtime.GOARCH == WASM")
 	window := js.Global().Get("window")
 	localStorage := window.Get("localStorage")
-	v := localStorage.Get("CompletedLevels")
-	println(v.String())
-	i, err := strconv.Atoi(v.String())
-	if err == nil {
-		ud.CompletedLevels = i
-	} else {
-		print("error", v.String())
+	v := localStorage.Get("gomaze")
+	// println(v.String())
+	bytes := []byte(v.String())
+	if len(bytes) > 0 {
+		err := json.Unmarshal(bytes[:], ud)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-
-	// globalObject := js.Global()
-	// loc := globalObject.Get("location")
-	// hrf := loc.Get("href")
-	// println(hrf.String())
 	return ud
 }
 
@@ -50,7 +46,14 @@ func (ud *UserData) Save() {
 	if runtime.GOARCH != "wasm" {
 		log.Fatal("WASM required")
 	}
+
+	bytes, err := json.Marshal(ud)
+	if err != nil {
+		log.Fatal(err)
+	}
+	str := string(bytes[:])
 	window := js.Global().Get("window")
 	localStorage := window.Get("localStorage")
-	localStorage.Set("CompletedLevels", strconv.Itoa(ud.CompletedLevels))
+	// localStorage.Set("CompletedLevels", strconv.Itoa(ud.CompletedLevels))
+	localStorage.Set("gomaze", str)
 }

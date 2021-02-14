@@ -41,7 +41,7 @@ type Ghost struct {
 func NewGhost(start *Tile) *Ghost {
 	gh := &Ghost{tile: start}
 	gh.facing = rand.Intn(3)
-	if rand.Float64() < 0.5 {
+	if rand.Float64() < 0.6 {
 		gh.dirfuncs = [4]dirfunc{util.Leftward, util.Forward, util.Rightward, util.Backward}
 		gh.speed = 0.01
 	} else {
@@ -54,7 +54,7 @@ func NewGhost(start *Tile) *Ghost {
 
 func (gh *Ghost) isPuckVisible(d int) bool {
 	for t := gh.tile; !t.IsWall(d); t = t.Neighbour(d) {
-		if t == TheGrid.puck.tile {
+		if t == TheGrid.puck.tile || t == TheGrid.puck.dest {
 			return true
 		}
 	}
@@ -70,19 +70,14 @@ func (gh *Ghost) isDirOkay(d int) bool {
 	tn := gh.tile.Neighbour(d)
 
 	// don't like puck
-	if tn == TheGrid.puck.tile {
+	if tn == TheGrid.puck.tile || tn == TheGrid.puck.dest {
 		return false
 	}
 
-	// also chase the ball
-	if tn.marked {
-		return true
-	}
-
 	// don't like going towards puck
-	// if gh.isPuckVisible(d) {
-	// 	return false
-	// }
+	if gh.isPuckVisible(d) {
+		return false
+	}
 
 	// don't leave the pen - this makes it too easy
 	// if gh.tile.pen {
@@ -96,7 +91,7 @@ func (gh *Ghost) isDirOkay(d int) bool {
 		if g == gh {
 			continue
 		}
-		if g.dest == tn {
+		if g.tile == tn || g.dest == tn {
 			return false
 		}
 	}

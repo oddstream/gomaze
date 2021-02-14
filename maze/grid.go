@@ -7,8 +7,8 @@ import (
 	"image"
 	"image/color"
 	"log"
-	"math"
 	"math/rand"
+	"runtime"
 	"time"
 
 	"github.com/fogleman/gg"
@@ -141,10 +141,10 @@ func (g *Grid) NotifyCallback(event interface{}) {
 		case ebiten.KeyA:
 			g.puck.tile.toggleWall(3)
 			g.visitTiles()
-		case ebiten.KeyC:
-			g.fillCulDeSacs()
-		case ebiten.KeyR:
-			g.createRooms()
+			// case ebiten.KeyC:
+			// 	g.fillCulDeSacs()
+			// case ebiten.KeyR:
+			// 	g.createRooms()
 		}
 	}
 }
@@ -435,11 +435,14 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 	}
 
 	if DebugMode {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS %v, FPS %v, grid %d,%d camera %v,%v puck %v,%v",
-			math.Ceil(ebiten.CurrentTPS()),
-			math.Ceil(ebiten.CurrentFPS()),
-			TilesAcross, TilesDown,
-			CameraX, CameraY,
-			g.puck.tile.X, g.puck.tile.Y))
+		var ms runtime.MemStats
+		runtime.ReadMemStats(&ms)
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("NumGC %v", ms.NumGC))
+		// ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS %v, FPS %v, grid %d,%d camera %v,%v puck %v,%v",
+		// 	math.Ceil(ebiten.CurrentTPS()),
+		// 	math.Ceil(ebiten.CurrentFPS()),
+		// 	TilesAcross, TilesDown,
+		// 	CameraX, CameraY,
+		// 	g.puck.tile.X, g.puck.tile.Y))
 	}
 }
