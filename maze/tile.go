@@ -277,14 +277,6 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 		screen.DrawImage(reachableImages[t.walls], op)
 	} else {
 		screen.DrawImage(unreachableImages[t.walls], op)
-
-	}
-
-	if t.marked {
-		// TODO this is too slow in larger grids
-		// op.ColorM.Scale(0, 0, 0, 1)
-		// op.ColorM.Translate(1, 1, 0, 0)
-		screen.DrawImage(dotImage, op)
 	}
 
 	// if DebugMode {
@@ -307,4 +299,16 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	// 	}
 	// }
 	// t.debugText(gridImage, fmt.Sprintf("%04b", t.walls))
+}
+
+// DrawMarked renders a mark on a Tile object
+func (t *Tile) DrawMarked(screen *ebiten.Image) {
+	// https://ebiten.org/documents/performancetips.html
+	// batch drawing of similar objects: don't intermingle drawing of tileImage and dotImage objects
+	if t.marked {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(t.worldX-overSize, t.worldY-overSize)
+		op.GeoM.Translate(CameraX, CameraY)
+		screen.DrawImage(dotImage, op)
+	}
 }

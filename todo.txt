@@ -5,7 +5,6 @@ $ cd ~/gomaze && /home/gilbert/go/bin/wasmserve -tags browser oddstream.games/go
 $ sudo rm -rf /usr/local/go
 $ sudo tar -C /usr/local -xzf go1.15.8.linux-amd64.tar.gz
 
-+ drawing marker (to ball) is causing stuttering
 ? https://tinygo.org/
 ? ghosts that hide in cul-de-sacs, different colors
 + score based on time, number of moves

@@ -422,6 +422,10 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 		t.Draw(screen)
 	}
 
+	for _, t := range g.tiles {
+		t.DrawMarked(screen)
+	}
+
 	for _, gh := range g.ghosts {
 		gh.Draw(screen)
 	}
