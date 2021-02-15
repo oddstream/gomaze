@@ -28,7 +28,7 @@ var TheAcmeFonts *AcmeFonts = NewAcmeFonts()
 var TheGrid *Grid
 
 // TheUserData holds serialized game progress data
-var TheUserData = NewUserData()
+var TheUserData = &UserData{Copyright: "Copyright ©️ 2021 oddstream.games", Game: "Herding Kittens", CompletedLevels: 0}
 
 // LevelData width,height,ghosts
 var LevelData = [][]int{
@@ -47,6 +47,8 @@ var LevelData = [][]int{
 func NewGame() (*Game, error) {
 	g := &Game{}
 	// println("LevelData", len(LevelData))
+
+	TheUserData.Load()
 
 	GSM.Switch(NewSplash())
 

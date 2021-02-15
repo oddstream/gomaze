@@ -52,14 +52,14 @@ func NewGhost(start *Tile) *Ghost {
 	return gh
 }
 
-func (gh *Ghost) isPuckVisible(d int) bool {
-	for t := gh.tile; !t.IsWall(d); t = t.Neighbour(d) {
-		if t == TheGrid.puck.tile || t == TheGrid.puck.dest {
-			return true
-		}
-	}
-	return false
-}
+// func (gh *Ghost) isPuckVisible(d int) bool {
+// 	for t := gh.tile; !t.IsWall(d); t = t.Neighbour(d) {
+// 		if t == TheGrid.puck.tile || t == TheGrid.puck.dest {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func (gh *Ghost) isDirOkay(d int) bool {
 	// can't go through walls
@@ -74,11 +74,6 @@ func (gh *Ghost) isDirOkay(d int) bool {
 		return false
 	}
 
-	// don't like going towards puck
-	if gh.isPuckVisible(d) {
-		return false
-	}
-
 	// don't leave the pen - this makes it too easy
 	// if gh.tile.pen {
 	// 	tn := gh.tile.Neighbour(dir)
@@ -86,6 +81,7 @@ func (gh *Ghost) isDirOkay(d int) bool {
 	// 		return false
 	// 	}
 	// }
+
 	// don't like going on top of other ghosts
 	for _, g := range TheGrid.ghosts {
 		if g == gh {
