@@ -60,7 +60,7 @@ func init() {
 	{
 		mid := float64(actualTileSize / 2)
 		dc := gg.NewContext(actualTileSize, actualTileSize)
-		dc.SetRGB(0, 0, 0)
+		dc.SetRGB(1, 1, 0)
 		dc.DrawCircle(mid, mid, 3)
 		dc.Fill()
 		dc.Stroke()
@@ -281,8 +281,9 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	}
 
 	if t.marked {
+		// TODO this is too slow in larger grids
 		// op.ColorM.Scale(0, 0, 0, 1)
-		op.ColorM.Translate(1, 1, 0, 0)
+		// op.ColorM.Translate(1, 1, 0, 0)
 		screen.DrawImage(dotImage, op)
 	}
 

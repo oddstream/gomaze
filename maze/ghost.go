@@ -32,7 +32,6 @@ type Ghost struct {
 	facing                 int     // 0,1,2,3
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
-	dirfuncs               [4]dirfunc
 	speed                  float64
 	worldX, worldY         float64
 }
@@ -41,13 +40,7 @@ type Ghost struct {
 func NewGhost(start *Tile) *Ghost {
 	gh := &Ghost{tile: start}
 	gh.facing = rand.Intn(3)
-	if rand.Float64() < 0.6 {
-		gh.dirfuncs = [4]dirfunc{util.Leftward, util.Forward, util.Rightward, util.Backward}
-		gh.speed = 0.01
-	} else {
-		gh.dirfuncs = [4]dirfunc{util.Rightward, util.Forward, util.Leftward, util.Backward}
-		gh.speed = 0.015
-	}
+	gh.speed = 0.01 + (rand.Float64() * 0.01)
 	gh.worldX, gh.worldY = gh.tile.Position()
 	return gh
 }
@@ -83,14 +76,14 @@ func (gh *Ghost) isDirOkay(d int) bool {
 	// }
 
 	// don't like going on top of other ghosts
-	for _, g := range TheGrid.ghosts {
-		if g == gh {
-			continue
-		}
-		if g.tile == tn || g.dest == tn {
-			return false
-		}
-	}
+	// for _, g := range TheGrid.ghosts {
+	// 	if g == gh {
+	// 		continue
+	// 	}
+	// 	if g.tile == tn || g.dest == tn {
+	// 		return false
+	// 	}
+	// }
 
 	return true
 }
@@ -99,8 +92,14 @@ func (gh *Ghost) isDirOkay(d int) bool {
 func (gh *Ghost) Update() error {
 
 	if gh.dest == nil {
+		var dirfuncs [4]dirfunc
+		if rand.Float64() < 0.5 {
+			dirfuncs = [4]dirfunc{util.Leftward, util.Forward, util.Rightward, util.Backward}
+		} else {
+			dirfuncs = [4]dirfunc{util.Rightward, util.Forward, util.Leftward, util.Backward}
+		}
 		for d := 0; d < 4; d++ {
-			newd := gh.dirfuncs[d](gh.facing)
+			newd := dirfuncs[d](gh.facing)
 			if gh.isDirOkay(newd) {
 				gh.facing = newd
 				gh.dest = gh.tile.Neighbour(newd)

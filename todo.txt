@@ -5,13 +5,7 @@ $ cd ~/gomaze && /home/gilbert/go/bin/wasmserve -tags browser oddstream.games/go
 $ sudo rm -rf /usr/local/go
 $ sudo tar -C /usr/local -xzf go1.15.8.linux-amd64.tar.gz
 
-+ WASM: save state to localStorage
-  https://github.com/golang/go/wiki/WebAssembly
-  https://pkg.go.dev/syscall/js
-  https://github.com/dennwc/dom
-  "You cannot import "syscall/js" without GOOS=js/GOARCH=wasm"
-  https://github.com/golang/tools/blob/master/gopls/doc/settings.md
-  
++ drawing marker (to ball) is causing stuttering
 ? https://tinygo.org/
 ? ghosts that hide in cul-de-sacs, different colors
 + score based on time, number of moves
