@@ -103,16 +103,16 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 }
 
 // travel in a direction, breaking walls, until meeting the edge or throwing the ball
-func (p *Puck) bulldoze(d int) {
-	if p.ball.tile == p.tile {
-		if p.bulldozing && p.facing == d {
-			p.bulldozing = false
-		} else {
-			p.facing = d
-			p.bulldozing = true
-		}
-	}
-}
+// func (p *Puck) bulldoze(d int) {
+// 	if p.ball.tile == p.tile {
+// 		if p.bulldozing && p.facing == d {
+// 			p.bulldozing = false
+// 		} else {
+// 			p.facing = d
+// 			p.bulldozing = true
+// 		}
+// 	}
+// }
 
 // String representation of puck
 func (p *Puck) String() string {

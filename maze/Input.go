@@ -65,7 +65,7 @@ func (i *Input) Update() {
 		i.Notify(image.Point{X: x, Y: y})
 	} else {
 		ts := inpututil.JustPressedTouchIDs()
-		if ts != nil && len(ts) == 1 {
+		if len(ts) == 1 { // len() for nil slices is zero
 			if inpututil.IsTouchJustReleased(ts[0]) {
 				x, y := ebiten.TouchPosition(ts[0])
 				i.Notify(image.Point{X: x, Y: y})

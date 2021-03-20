@@ -110,10 +110,9 @@ func (gh *Ghost) Update() error {
 			gh.lerpstep = 0
 			gh.srcX, gh.srcY = gh.tile.Position()
 			gh.dstX, gh.dstY = gh.dest.Position()
-		} else {
-			// ghost has no direction
-			// this can happen when trying to stop ghosts from sitting on top of each other in Ghost.IsGoodDir()
 		}
+		// if gh.dest == nil, ghost has no direction
+		// this can happen when trying to stop ghosts from sitting on top of each other in Ghost.IsGoodDir()
 	} else {
 		if gh.lerpstep >= 1 {
 			gh.tile = gh.dest

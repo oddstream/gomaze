@@ -195,61 +195,52 @@ func (g *Grid) randomTile() *Tile {
 	return g.tiles[i]
 }
 
-func (g *Grid) createRoom(x1, y1 int) {
-	x2 := x1 + 4
-	y2 := y1 + 4
-	if x2 >= TilesAcross || y2 >= TilesDown {
-		return
-	}
-	for x := x1; x < x2; x++ {
-		for y := y1; y < y2; y++ {
-			t := g.findTile(x, y)
-			t.removeAllWalls()
-		}
-	}
-	// for x := x1; x < x2; x++ {
-	// 	for y := y1; y < y2; y++ {
-	// 		t := g.findTile(x, y)
-	// 		t.addWall(0)
-	// 		t.addWall(1)
-	// 		t.addWall(2)
-	// 		t.addWall(3)
-	// 	}
-	// }
-	for x := x1; x < x2; x++ {
-		t := g.findTile(x, y1)
-		t.addWall(0)
-		t = g.findTile(x, y2-1)
-		t.addWall(2)
-	}
-	for y := y1; y < y2; y++ {
-		t := g.findTile(x1, y)
-		t.addWall(3)
-		t = g.findTile(x2-1, y)
-		t.addWall(1)
-	}
-}
+// func (g *Grid) createRoom(x1, y1 int) {
+// 	x2 := x1 + 4
+// 	y2 := y1 + 4
+// 	if x2 >= TilesAcross || y2 >= TilesDown {
+// 		return
+// 	}
+// 	for x := x1; x < x2; x++ {
+// 		for y := y1; y < y2; y++ {
+// 			t := g.findTile(x, y)
+// 			t.removeAllWalls()
+// 		}
+// 	}
+// 	for x := x1; x < x2; x++ {
+// 		t := g.findTile(x, y1)
+// 		t.addWall(0)
+// 		t = g.findTile(x, y2-1)
+// 		t.addWall(2)
+// 	}
+// 	for y := y1; y < y2; y++ {
+// 		t := g.findTile(x1, y)
+// 		t.addWall(3)
+// 		t = g.findTile(x2-1, y)
+// 		t.addWall(1)
+// 	}
+// }
 
-func (g *Grid) createRooms() {
-	for x := 0; x < TilesAcross; x += 4 {
-		for y := 0; y < TilesDown; y += 4 {
-			if rand.Float64() < 0.5 {
-				g.createRoom(x, y)
-			}
-		}
-	}
-}
+// func (g *Grid) createRooms() {
+// 	for x := 0; x < TilesAcross; x += 4 {
+// 		for y := 0; y < TilesDown; y += 4 {
+// 			if rand.Float64() < 0.5 {
+// 				g.createRoom(x, y)
+// 			}
+// 		}
+// 	}
+// }
 
 func (g *Grid) carve() {
 	t := g.randomTile()
 	t.recursiveBacktracker()
 }
 
-func (g *Grid) fillCulDeSacs() {
-	for _, t := range g.tiles {
-		t.fillCulDeSac()
-	}
-}
+// func (g *Grid) fillCulDeSacs() {
+// 	for _, t := range g.tiles {
+// 		t.fillCulDeSac()
+// 	}
+// }
 
 // AllTiles applies a func to all tiles
 func (g *Grid) AllTiles(fn func(*Tile)) {

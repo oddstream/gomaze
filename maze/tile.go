@@ -4,15 +4,11 @@ package maze
 
 import (
 	"fmt"
-	"image/color"
 	"log"
-	"math/bits"
 	"math/rand"
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
 )
 
 // NORTH EAST SOUTH WEST bit patterns for presence of walls
@@ -29,14 +25,14 @@ var (
 	unreachableImages map[uint]*ebiten.Image
 	dotImage          *ebiten.Image
 	overSize          float64
-	halfTileSize      float64
-	wallbits          = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
-	wallopps          = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
-	oppdirs           = [4]int{2, 3, 0, 1}
+	// halfTileSize      float64
+	wallbits = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
+	wallopps = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
+	oppdirs  = [4]int{2, 3, 0, 1}
 )
 
 func init() {
-	if 0 == TileSize {
+	if TileSize == 0 {
 		log.Fatal("Tile dimensions not set")
 	}
 
@@ -54,7 +50,7 @@ func init() {
 
 	// the tiles are all the same size, so pre-calc some useful variables
 	actualTileSize, _ := reachableImages[0].Size()
-	halfTileSize = float64(actualTileSize) / 2
+	// halfTileSize = float64(actualTileSize) / 2
 	overSize = float64((actualTileSize - TileSize) / 2)
 
 	{
@@ -153,30 +149,23 @@ func (t *Tile) removeAllWalls() {
 	}
 }
 
-func (t *Tile) wallCount() int {
-	return bits.OnesCount(t.walls)
-	// count := 0
-	// for i := 0; i < len(bits); i++ {
-	// 	if t.walls&bits[i] == bits[i] {
-	// 		count++
-	// 	}
-	// }
-	// return count
-}
+// func (t *Tile) wallCount() int {
+// 	return bits.OnesCount(t.walls)
+// }
 
-func (t *Tile) fillCulDeSac() {
-	if t.wallCount() == 3 {
-		for d := 0; d < 4; d++ {
-			if t.walls&wallbits[d] == 0 {
-				t.walls = MASK
-				if tn := t.Neighbour(d); tn != nil {
-					tn.walls |= wallopps[d]
-				}
-				break
-			}
-		}
-	}
-}
+// func (t *Tile) fillCulDeSac() {
+// 	if t.wallCount() == 3 {
+// 		for d := 0; d < 4; d++ {
+// 			if t.walls&wallbits[d] == 0 {
+// 				t.walls = MASK
+// 				if tn := t.Neighbour(d); tn != nil {
+// 					tn.walls |= wallopps[d]
+// 				}
+// 				break
+// 			}
+// 		}
+// 	}
+// }
 
 func (t *Tile) recursiveBacktracker() {
 	// dirs := [4]int{0, 1, 2, 3}
@@ -185,7 +174,7 @@ func (t *Tile) recursiveBacktracker() {
 	for d := 0; d < 4; d++ {
 		dir := dirs[d]
 		tn := t.Neighbour(dir)
-		if tn != nil && tn.visited == false {
+		if tn != nil && !tn.visited {
 			t.removeWall(dir)
 			tn.visited = true
 			tn.recursiveBacktracker()
@@ -221,18 +210,18 @@ func (t *Tile) Update() error {
 	return nil
 }
 
-func (t *Tile) debugText(screen *ebiten.Image, str string) {
-	bound, _ := font.BoundString(TheAcmeFonts.large, str)
-	w := (bound.Max.X - bound.Min.X).Ceil()
-	h := (bound.Max.Y - bound.Min.Y).Ceil()
-	x, y := t.worldX-overSize, t.worldY-overSize
-	tx := int(x) + (TileSize-w)/2
-	ty := int(y) + (TileSize-h)/2 + h
-	c := color.RGBA{R: 0xff - colorBackground.R, G: 0xff - colorBackground.G, B: 0xff - colorBackground.B, A: 0xff}
-	// var c color.Color = BasicColors["Black"]
-	// ebitenutil.DrawRect(screen, float64(tx), float64(ty), float64(w), float64(h), c)
-	text.Draw(screen, str, TheAcmeFonts.large, tx, ty, c)
-}
+// func (t *Tile) debugText(screen *ebiten.Image, str string) {
+// 	bound, _ := font.BoundString(TheAcmeFonts.large, str)
+// 	w := (bound.Max.X - bound.Min.X).Ceil()
+// 	h := (bound.Max.Y - bound.Min.Y).Ceil()
+// 	x, y := t.worldX-overSize, t.worldY-overSize
+// 	tx := int(x) + (TileSize-w)/2
+// 	ty := int(y) + (TileSize-h)/2 + h
+// 	c := color.RGBA{R: 0xff - colorBackground.R, G: 0xff - colorBackground.G, B: 0xff - colorBackground.B, A: 0xff}
+// 	// var c color.Color = BasicColors["Black"]
+// 	// ebitenutil.DrawRect(screen, float64(tx), float64(ty), float64(w), float64(h), c)
+// 	text.Draw(screen, str, TheAcmeFonts.large, tx, ty, c)
+// }
 
 // Draw renders a Tile object
 func (t *Tile) Draw(screen *ebiten.Image) {

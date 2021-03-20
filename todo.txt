@@ -1,4 +1,4 @@
-$ GOOS=js GOARCH=wasm go build -ldflags="-s -w" -tags browser -o ../oddstream.github.io/Herding/gomaze.wasm
+$ GOOS=js GOARCH=wasm go build -o ../oddstream.github.io/Herding/gomaze.wasm -x -ldflags="-s -w" -tags browser 
 $ cd ~/gomaze && /home/gilbert/go/bin/wasmserve -tags browser oddstream.games/gomaze
   (no need to build .wasm file first)
 

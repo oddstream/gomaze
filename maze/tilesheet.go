@@ -109,32 +109,32 @@ func makeTileImage(walls uint, unreachable bool) image.Image {
 	return dc.Image()
 }
 
-var polyCoords = []float64{
-	-12, 10, // bottom left
-	-8, 8,
-	-4, 12,
-	0, 8,
-	4, 12,
-	8, 8,
-	12, 10, // bottom right
-	12, 0,
-	// arch
-	11, -5,
-	10, -7,
-	9, -8,
-	8, -9,
-	6, -10,
+// var polyCoords = []float64{
+// 	-12, 10, // bottom left
+// 	-8, 8,
+// 	-4, 12,
+// 	0, 8,
+// 	4, 12,
+// 	8, 8,
+// 	12, 10, // bottom right
+// 	12, 0,
+// 	// arch
+// 	11, -5,
+// 	10, -7,
+// 	9, -8,
+// 	8, -9,
+// 	6, -10,
 
-	0, -11,
+// 	0, -11,
 
-	-6, -10,
-	-8, -9,
-	-9, -8,
-	-10, -7,
-	-11, -5,
-	// end of arch
-	-12, 0,
-}
+// 	-6, -10,
+// 	-8, -9,
+// 	-9, -8,
+// 	-10, -7,
+// 	-11, -5,
+// 	// end of arch
+// 	-12, 0,
+// }
 
 func makeGhostImage(dir int) image.Image {
 	mid := float64(TileSize / 2)

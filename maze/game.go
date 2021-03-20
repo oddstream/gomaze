@@ -1,5 +1,4 @@
-// Copyright ©️ 2021 oddstream.games
-
+// Package maze - a playground for maze ideas using Go, Ebiten and fogleman/gg
 package maze
 
 import (
