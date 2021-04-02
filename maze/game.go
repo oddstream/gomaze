@@ -45,7 +45,6 @@ var LevelData = [][]int{
 // NewGame generates a new Game object.
 func NewGame() (*Game, error) {
 	g := &Game{}
-	// println("LevelData", len(LevelData))
 
 	TheUserData.Load()
 

@@ -5,6 +5,7 @@ package maze
 import (
 	"image"
 	"os"
+	"runtime"
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -53,7 +54,9 @@ func (tb *TextButton) NotifyCallback(event interface{}) {
 	case ebiten.Key:
 		k := v
 		if k == ebiten.KeyBackspace {
-			os.Exit(0)
+			if runtime.GOARCH != "wasm" {
+				os.Exit(0)
+			}
 		}
 	}
 }

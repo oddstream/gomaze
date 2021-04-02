@@ -4,16 +4,21 @@ package maze
 
 import (
 	"bytes"
+	_ "embed" // go:embed only allowed in Go files that import "embed"
 	"image"
 	"log"
 	"math"
 	"os"
+	"runtime"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/fogleman/gg"
 )
+
+//go:embed assets/raccoon280x180.png
+var logoBytes []byte
 
 // Splash represents a game state.
 type Splash struct {
@@ -36,21 +41,7 @@ func NewSplash() *Splash {
 	img := dc.Image()
 	s.circleImage = ebiten.NewImageFromImage(img)
 
-	// var err error
-	// s.logoImage, _, err = ebitenutil.NewImageFromFile("/home/gilbert/Tetra/assets/oddstream logo.png")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// Decode image from a byte slice instead of a file so that this works in any working directory.
-	// If you want to use a file, there are some options:
-	// 1) Use os.Open and pass the file to the image decoder.
-	//    This is a very regular way, but doesn't work on browsers.
-	// 2) Use ebitenutil.OpenFile and pass the file to the image decoder.
-	//    This works even on browsers.
-	// 3) Use ebitenutil.NewImageFromFile to create an ebiten.Image directly from a file.
-	//    This also works on browsers.
-	img, _, err := image.Decode(bytes.NewReader(Logo_png))
+	img, _, err := image.Decode(bytes.NewReader(logoBytes))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,7 +69,9 @@ func (s *Splash) Layout(outsideWidth, outsideHeight int) (int, int) {
 func (s *Splash) Update() error {
 
 	if inpututil.IsKeyJustReleased(ebiten.KeyBackspace) {
-		os.Exit(0)
+		if runtime.GOARCH != "wasm" {
+			os.Exit(0)
+		}
 	}
 
 	if s.skew < 90 {
