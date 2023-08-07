@@ -1,0 +1,28 @@
+{
+	"editor.fontFamily": "Hack",	// like DejaVu Sans Mono
+	// "editor.fontFamily": "DejaVu Sans Mono",
+	// "editor.fontFamily": "Fantasque Sans Mono",	//https://github.com/belluzj/fantasque-sans/
+	// "editor.fontFamily": "Comic Mono", // https://dtinth.github.io/comic-mono-font/
+	// "editor.fontFamily": "Droid Sans Mono",
+	// "editor.fontFamily": "Liberation Mono", // lighter Droid Sans Mono
+	// "editor.fontFamily": "Consolas",
+	// "editor.fontFamily": "Anonymous Pro",	// narrower and lighter
+	// "editor.fontFamily": "JetBrains Mono",
+	// "editor.fontFamily": "Fira Code Retina", // ligatures
+	// "editor.fontFamily": "Fira Code",
+	// "editor.fontFamily": "Ubuntu Mono",	// too small
+	// "editor.fontFamily": "Inconsolata",	// too small
+	// "editor.fontFamily": "Go Mono",	// too serifed
+	// "editor.fontFamily": "Cascadia Code",	// too fat
+	"editor.tokenColorCustomizations": {
+		"textMateRules": [
+		{
+			"scope": "comment",
+			"settings": {
+				"fontStyle": "italic"
+			}
+		}
+		]
+	},
+	// "editor.rulers": [80, 100, 120]
+}
