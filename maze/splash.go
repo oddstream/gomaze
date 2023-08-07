@@ -56,10 +56,14 @@ func (s *Splash) Layout(outsideWidth, outsideHeight int) (int, int) {
 	xCenter := outsideWidth / 2
 	yCenter := outsideHeight / 2
 
-	cx, cy := s.circleImage.Size()
+	// cx, cy := s.circleImage.Size()
+	cx := s.circleImage.Bounds().Dx()
+	cy := s.circleImage.Bounds().Dy()
 	s.circlePos = image.Point{X: xCenter - (cx / 2), Y: yCenter - (cy / 2)}
 
-	lx, ly := s.logoImage.Size()
+	// lx, ly := s.logoImage.Size()
+	lx := s.logoImage.Bounds().Dx()
+	ly := s.logoImage.Bounds().Dy()
 	s.logoPos = image.Point{X: xCenter - (lx / 2), Y: yCenter - 4 - (ly / 2)}
 
 	return outsideWidth, outsideHeight
@@ -91,27 +95,28 @@ func (s *Splash) Draw(screen *ebiten.Image) {
 
 	{
 		op := &ebiten.DrawImageOptions{}
-		sx, sy := s.circleImage.Size()
-		sx, sy = sx/2, sy/2
+		// sx, sy := s.circleImage.Size()
+		// sx, sy = sx/2, sy/2
+		sx := s.circleImage.Bounds().Dx() / 2
+		sy := s.circleImage.Bounds().Dy() / 2
 		op.GeoM.Translate(float64(-sx), float64(-sy))
 		op.GeoM.Scale(0.5, 0.5)
 		op.GeoM.Skew(skewRadians, skewRadians)
 		op.GeoM.Translate(float64(sx), float64(sy))
-
 		op.GeoM.Translate(float64(s.circlePos.X), float64(s.circlePos.Y))
 		screen.DrawImage(s.circleImage, op)
 	}
 	{
 		op := &ebiten.DrawImageOptions{}
-		sx, sy := s.logoImage.Size()
-		sx, sy = sx/2, sy/2
+		// sx, sy := s.logoImage.Size()
+		// sx, sy = sx/2, sy/2
+		sx := s.logoImage.Bounds().Dx() / 2
+		sy := s.logoImage.Bounds().Dy() / 2
 		op.GeoM.Translate(float64(-sx), float64(-sy))
 		op.GeoM.Scale(0.5, 0.5)
 		op.GeoM.Skew(skewRadians, skewRadians)
 		op.GeoM.Translate(float64(sx), float64(sy))
-
 		op.GeoM.Translate(float64(s.logoPos.X), float64(s.logoPos.Y))
-
 		screen.DrawImage(s.logoImage, op)
 	}
 }

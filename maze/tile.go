@@ -28,7 +28,7 @@ var (
 	// halfTileSize      float64
 	wallbits = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
 	wallopps = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
-	oppdirs  = [4]int{2, 3, 0, 1}
+	// oppdirs  = [4]int{2, 3, 0, 1}
 )
 
 func init() {
@@ -49,7 +49,8 @@ func init() {
 	}
 
 	// the tiles are all the same size, so pre-calc some useful variables
-	actualTileSize, _ := reachableImages[0].Size()
+	// actualTileSize, _ := reachableImages[0].Size()
+	actualTileSize := reachableImages[0].Bounds().Dx()
 	// halfTileSize = float64(actualTileSize) / 2
 	overSize = float64((actualTileSize - TileSize) / 2)
 
@@ -70,15 +71,15 @@ type Tile struct {
 	X, Y           int
 	worldX, worldY float64 // position of tile
 	edges          [4]*Tile
+	pen            bool // true if this tile is part of the central pen
 
 	// members that may change
-	walls uint
+	walls uint // bit mask of the walls this tile currently has
 
 	// volatile members
-	visited bool
-	marked  bool
-	pen     bool
-	parent  *Tile
+	marked  bool  // true if this tile is part of marked path for puck to follow
+	visited bool  // temporarily used when doing BFS of grid
+	parent  *Tile // temporarily used to find puck's marked path
 }
 
 // NewTile creates a new Tile object and returns a pointer to it
@@ -193,11 +194,6 @@ func (t *Tile) Position() (float64, float64) {
 func (t *Tile) String() string {
 	return fmt.Sprintf("[%v,%v]", t.X, t.Y)
 }
-
-// AllTiles applies a func to all tiles
-// func (t *Tile) AllTiles(fn func(*Tile)) {
-// 	t.G.AllTiles(fn)
-// }
 
 // Layout the tile
 func (t *Tile) Layout() {

@@ -9,7 +9,6 @@ import (
 	"log"
 	"math/rand"
 	"runtime"
-	"time"
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -34,7 +33,7 @@ var (
 
 // Grid is an object representing the grid of tiles
 type Grid struct {
-	ticks              int
+	ticks              int     // count update ticks (use ticks % 10 for refreshing minimap)
 	tiles              []*Tile // a slice (not array!) of pointers to Tile objects
 	colorBackground    color.RGBA
 	colorWall          color.RGBA
@@ -69,40 +68,58 @@ func NewGrid(w, h, ghostCount int) *Grid {
 	for _, t := range g.tiles {
 		x := t.X
 		y := t.Y
-		t.edges[0] = g.findTile(x, y-1)
-		t.edges[1] = g.findTile(x+1, y)
-		t.edges[2] = g.findTile(x, y+1)
-		t.edges[3] = g.findTile(x-1, y)
+		t.edges[0] = g.findTile(x, y-1) // North
+		t.edges[1] = g.findTile(x+1, y) // East
+		t.edges[2] = g.findTile(x, y+1) // South
+		t.edges[3] = g.findTile(x-1, y) // West
 	}
 
 	{
+		// the pen is a 3x3 square of tiles in the middle of the grid
 		midX := TilesAcross / 2
 		midY := TilesDown / 2
 		for x := midX - 1; x <= midX+1; x++ {
 			for y := midY - 1; y <= midY+1; y++ {
 				t := g.findTile(x, y)
+				t.removeAllWalls()
 				t.pen = true
 			}
 		}
+		// create a shaded background image for the pen
 		dc := gg.NewContext(TileSize*3, TileSize*3)
 		dc.SetRGBA(float64(g.colorBackground.R/0xff), float64(g.colorBackground.G/0xff), float64(g.colorBackground.B/0xff), 0.5)
 		dc.DrawRoundedRectangle(0, 0, float64(TileSize*3), float64(TileSize*3), float64(TileSize/12))
 		dc.Fill()
 		dc.Stroke()
 
+		// put the level number dimly in the background image
 		dc.SetRGBA(float64(g.colorBackground.R/0xff), float64(g.colorBackground.G/0xff), float64(g.colorBackground.B/0xff), 0.1)
 		dc.SetFontFace(TheAcmeFonts.huge)
 		dc.DrawStringAnchored(fmt.Sprint(TheUserData.CompletedLevels+1), float64(TileSize)*1.5, float64(TileSize), 0.5, 0.5)
 
 		g.penImage = ebiten.NewImageFromImage(dc.Image())
 
+		// remember where to draw the pen background image
 		t := g.findTile(midX-1, midY-1)
 		x, y, _, _ := t.Rect()
 		g.penX = float64(x)
 		g.penY = float64(y)
 	}
 
-	g.CreateNextLevel(ghostCount)
+	g.carve()
+
+	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
+
+	if ghostCount > MaxGhosts {
+		ghostCount = MaxGhosts
+	}
+	for i := 0; i < ghostCount; i++ {
+		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
+	}
+
+	palette := Palettes[rand.Int()%len(Palettes)]
+	g.colorBackground = CalcBackgroundColor(palette)
+	g.colorWall = ExtendedColors[palette[rand.Int()%len(palette)]]
 
 	g.input = NewInput()
 	g.input.Add(g)
@@ -120,9 +137,13 @@ func (g *Grid) NotifyCallback(event interface{}) {
 		// pt = pt.Sub(image.Point{X: int(CameraX), Y: int(CameraY)})
 		t := g.findTileAt(pt)
 		if t != nil {
-			// println("input on tile", t.X, t.Y, t.wallCount())
-			g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
-			g.puck.ThrowBallTo(t)
+			if t == g.puck.tile {
+				println("Puck is already on tile", t.X, t.Y)
+			} else {
+				// println("input on tile", t.X, t.Y, t.wallCount())
+				g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
+				g.puck.ThrowBallTo(t)
+			}
 		}
 	case ebiten.Key:
 		k := v
@@ -141,10 +162,6 @@ func (g *Grid) NotifyCallback(event interface{}) {
 		case ebiten.KeyA:
 			g.puck.tile.toggleWall(3)
 			g.visitTiles()
-			// case ebiten.KeyC:
-			// 	g.fillCulDeSacs()
-			// case ebiten.KeyR:
-			// 	g.createRooms()
 		}
 	}
 }
@@ -249,42 +266,14 @@ func (g *Grid) AllTiles(fn func(*Tile)) {
 	}
 }
 
-// CreateNextLevel resets game data and moves the puzzle to the next level
-func (g *Grid) CreateNextLevel(ghostCount int) {
-	for _, t := range g.tiles {
-		t.Reset()
-	}
-
-	// g.createRooms()
-	for _, t := range g.tiles {
-		if t.pen {
-			t.removeAllWalls()
-		}
-	}
-
-	rand.Seed(time.Now().UnixNano())
-
-	g.carve()
-
-	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
-
-	if ghostCount > MaxGhosts {
-		ghostCount = MaxGhosts
-	}
-	for i := 0; i < ghostCount; i++ {
-		g.ghosts = append(g.ghosts, NewGhost(g.randomTile()))
-	}
-
-	palette := Palettes[rand.Int()%len(Palettes)]
-	g.colorBackground = CalcBackgroundColor(palette)
-	g.colorWall = ExtendedColors[palette[rand.Int()%len(palette)]]
-}
-
+// visitTiles rewalks the grid (from the middle) and resets the .visited
+// member, which is used to differentiate reachable and unreachable tiles;
+// .visited == true means tile is reachable
 func (g *Grid) visitTiles() {
 	g.AllTiles(func(t *Tile) { t.visited = false; t.parent = nil })
-	t := g.findTile(TilesAcross/2, TilesDown/2)
-	q := []*Tile{t}
-	t.parent = t
+	tFirst := g.findTile(TilesAcross/2, TilesDown/2)
+	q := []*Tile{tFirst}
+	tFirst.parent = tFirst
 	for len(q) > 0 {
 		t := q[0]
 		t.visited = true
@@ -363,7 +352,7 @@ func (g *Grid) Layout(outsideWidth, outsideHeight int) (int, int) {
 func (g *Grid) Update() error {
 
 	g.ticks++
-	if g.ticks > int(ebiten.CurrentTPS()) {
+	if g.ticks > int(ebiten.ActualTPS()) {
 		g.ticks = 0
 	}
 

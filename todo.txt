@@ -1,5 +1,5 @@
-$ GOOS=js GOARCH=wasm go build -o ../oddstream.github.io/Herding/gomaze.wasm -x -ldflags="-s -w" -tags browser 
-$ GOOS=js GOARCH=wasm go build -o ../oddstream.github.io/Herding/gomaze.wasm -ldflags="-s -w" -tags browser 
+$ GOOS=js GOARCH=wasm go build -o ../oddstream.github.io/Herding/gomaze.wasm -x -ldflags="-s -w" -tags browser
+$ GOOS=js GOARCH=wasm go build -o ../oddstream.github.io/Herding/gomaze.wasm -ldflags="-s -w" -tags browser
 open a terminal in /oddstream.github.io/Herding
 $ python3 -m http.server
 (-m mod : run library module as a script (terminates option list))
@@ -8,11 +8,19 @@ open browser at http://0.0.0.0:8000/gomaze.html
 $ cd ~/gomaze && /home/gilbert/go/bin/wasmserve -tags browser oddstream.games/gomaze
   (no need to build .wasm file first)
 
+# to update go
 $ sudo rm -rf /usr/local/go
 $ sudo tar -C /usr/local -xzf go1.16.3.linux-amd64.tar.gz
 
+[ ] remove deprecated APIs
+	ebiten.Image.Size()
+	ebiten.CurrentTPS()
+
+[ ] retire WASD and use tap on puck location
+
 ? https://tinygo.org/
 ? ghosts that hide in cul-de-sacs, different colors
+
 + score based on time, number of moves
 + menu becomes level select those unlocked
 + title, status bars

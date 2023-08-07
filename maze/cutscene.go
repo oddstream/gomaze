@@ -35,7 +35,9 @@ func NewCutscene() *Cutscene {
 func (cs *Cutscene) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 	if cs.circlePos.X == 0 && cs.circlePos.Y == 0 {
-		cx, cy := cs.circleImage.Size()
+		// cx, cy := cs.circleImage.Size()
+		cx := cs.circleImage.Bounds().Dx()
+		cy := cs.circleImage.Bounds().Dy()
 		cs.startX = -cx
 		cs.finishX = outsideWidth
 		cs.circlePos = image.Point{X: cs.startX, Y: outsideHeight - cy}

@@ -1,3 +1,5 @@
+//go:build linux || windows
+
 package maze
 
 import (
@@ -41,11 +43,11 @@ func (ud *UserData) Load() {
 		log.Fatal("WASM detected")
 	}
 
-	path, err := fullPath()
+	pathname, err := fullPath()
 	if err != nil {
 		return
 	}
-	file, err := os.Open(path)
+	file, err := os.Open(pathname)
 	if err == nil && file != nil {
 		defer file.Close()
 
@@ -77,14 +79,14 @@ func (ud *UserData) Save() {
 		log.Fatal(err)
 	}
 
-	path, err := fullPath()
+	pathname, err := fullPath()
 	if err != nil {
 		return
 	}
 
 	makeConfigDir()
 
-	file, err := os.Create(path)
+	file, err := os.Create(pathname)
 	if err != nil {
 		log.Fatal(err)
 	}

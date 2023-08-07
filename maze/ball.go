@@ -39,8 +39,8 @@ func NewBall(start *Tile) *Ball {
 	return b
 }
 
-// ThrowTo a target tile
-func (b *Ball) ThrowTo(to *Tile) {
+// StartThrow to a target tile
+func (b *Ball) StartThrow(to *Tile) {
 	b.dest = to
 	b.srcX, b.srcY = b.tile.Position()
 	b.dstX, b.dstY = b.dest.Position()

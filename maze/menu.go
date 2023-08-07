@@ -67,8 +67,6 @@ func (s *Menu) Update() error {
 func (s *Menu) Draw(screen *ebiten.Image) {
 	screen.Fill(colorBackground)
 
-	// op := &ebiten.DrawImageOptions{}
-
 	for _, d := range s.widgets {
 		d.Draw(screen)
 	}

@@ -10,7 +10,7 @@ import (
 	"golang.org/x/image/font"
 )
 
-// Label is an object that represents a button
+// Label is a widget object that shows some text on screen
 type Label struct {
 	text          string
 	font          font.Face
@@ -44,7 +44,7 @@ func (l *Label) Rect() (x0 int, y0 int, x1 int, y1 int) {
 	return // using named return parameters
 }
 
-// Action invikes the action func
+// Action invokes the action func
 func (l *Label) Action() {
 	// Labels take no action
 }

@@ -1,9 +1,9 @@
 {
-	"editor.fontFamily": "Hack",	// like DejaVu Sans Mono
+	"editor.fontFamily": "Droid Sans Mono",
+	// "editor.fontFamily": "Hack",	// like DejaVu Sans Mono
 	// "editor.fontFamily": "DejaVu Sans Mono",
 	// "editor.fontFamily": "Fantasque Sans Mono",	//https://github.com/belluzj/fantasque-sans/
 	// "editor.fontFamily": "Comic Mono", // https://dtinth.github.io/comic-mono-font/
-	// "editor.fontFamily": "Droid Sans Mono",
 	// "editor.fontFamily": "Liberation Mono", // lighter Droid Sans Mono
 	// "editor.fontFamily": "Consolas",
 	// "editor.fontFamily": "Anonymous Pro",	// narrower and lighter

@@ -17,8 +17,6 @@ type Puck struct {
 	dest                   *Tile   // tile we are lerping to
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
-	facing                 int // 0,1,2,3
-	bulldozing             bool
 
 	puckImage *ebiten.Image
 
@@ -49,16 +47,15 @@ func NewPuck(start *Tile) *Puck {
 // SetCamera so that puck is at the center of the screen
 func (p *Puck) SetCamera() {
 	w, h := WindowWidth, WindowHeight // can't use ebiten.WindowSize(), returns 0,0 on WASM
-	sx, sy := p.puckImage.Size()
+	// sx, sy := p.puckImage.Size()
+	sx := p.puckImage.Bounds().Dx()
+	sy := p.puckImage.Bounds().Dy()
 	CameraX = float64(w/2-sx/2) - p.worldX
 	CameraY = float64(h/2-sy/2) - p.worldY
 }
 
 // ThrowBallTo a target tile
 func (p *Puck) ThrowBallTo(targ *Tile) {
-
-	// terminate bulldozing mode
-	p.bulldozing = false
 
 	// if puck is lerping, stop it
 	if p.dest != nil {
@@ -81,7 +78,7 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 			}
 			break
 		}
-		for d := 0; d < 4; d++ {
+		for _, d := range []int{0, 1, 2, 3} {
 			if t.IsWall(d) {
 				continue
 			}
@@ -98,21 +95,9 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 	}
 
 	if found {
-		p.ball.ThrowTo(targ)
+		p.ball.StartThrow(targ)
 	}
 }
-
-// travel in a direction, breaking walls, until meeting the edge or throwing the ball
-// func (p *Puck) bulldoze(d int) {
-// 	if p.ball.tile == p.tile {
-// 		if p.bulldozing && p.facing == d {
-// 			p.bulldozing = false
-// 		} else {
-// 			p.facing = d
-// 			p.bulldozing = true
-// 		}
-// 	}
-// }
 
 // String representation of puck
 func (p *Puck) String() string {
@@ -125,7 +110,7 @@ func (p *Puck) Update() error {
 	p.ball.Update()
 
 	if p.tile.marked {
-		println("unmarking")
+		// println("unmarking")
 		p.tile.marked = false
 	}
 
@@ -145,18 +130,6 @@ func (p *Puck) Update() error {
 				p.dstX, p.dstY = p.dest.Position()
 				p.lerpstep = 0
 				break
-			}
-		}
-		if p.dest == nil && p.bulldozing {
-			if tn := p.tile.Neighbour(p.facing); tn == nil {
-				p.bulldozing = false
-			} else {
-				p.tile.removeWall(p.facing)
-				p.dest = tn
-				p.srcX, p.srcY = p.tile.Position()
-				p.dstX, p.dstY = p.dest.Position()
-				p.lerpstep = 0.05
-				p.ball.ThrowTo(tn)
 			}
 		}
 	} else {
