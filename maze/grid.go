@@ -18,7 +18,7 @@ import (
 
 const (
 	// TileSize is now a constant
-	TileSize = 80
+	TileSize = 100
 	// MaxGhosts limit that can fit in 3x3 pen
 	MaxGhosts = 8
 )
@@ -101,7 +101,7 @@ func NewGrid(w, h, ghostCount int) *Grid {
 
 		// remember where to draw the pen background image
 		t := g.findTile(midX-1, midY-1)
-		x, y, _, _ := t.Rect()
+		x, y, _, _ := t.rect()
 		g.penX = float64(x)
 		g.penY = float64(y)
 	}
@@ -138,7 +138,21 @@ func (g *Grid) NotifyCallback(event interface{}) {
 		t := g.findTileAt(pt)
 		if t != nil {
 			if t == g.puck.tile {
-				println("Puck is already on tile", t.X, t.Y)
+				// println("Puck is already on tile", t.X, t.Y, t.WhichQuadrant(pt))
+				dir := t.whichQuadrant(pt)
+				if t.neighbour(dir) != nil {
+					if t.isWall(dir) {
+						t.removeWall(dir)
+						g.puck.CarryWall()
+					} else {
+						if g.puck.wallsBeingCarried > 0 {
+							t.addWall(dir)
+							g.puck.UncarryWall()
+						}
+					}
+				}
+				// g.puck.tile.toggleWall(t.whichQuadrant(pt))
+				g.visitTiles()
 			} else {
 				// println("input on tile", t.X, t.Y, t.wallCount())
 				g.AllTiles(func(t *Tile) { t.parent = nil; t.marked = false })
@@ -200,7 +214,7 @@ func (g *Grid) findTile(x, y int) *Tile {
 // findTileAt finds the tile under the mouse click or touch
 func (g *Grid) findTileAt(pt image.Point) *Tile {
 	for _, t := range g.tiles {
-		if util.InRect(pt, t.Rect) {
+		if util.InRect(pt, t.rect) {
 			return t
 		}
 	}
@@ -211,6 +225,16 @@ func (g *Grid) randomTile() *Tile {
 	i := rand.Intn(len(g.tiles))
 	return g.tiles[i]
 }
+
+// func (g *Grid) removeRandomWall() {
+// 	t := g.randomTile()
+// 	for _, d := range []int{0, 1, 2, 3} {
+// 		if t.isWall(d) && t.neighbour(d) != nil {
+// 			t.removeWall(d)
+// 			break
+// 		}
+// 	}
+// }
 
 // func (g *Grid) createRoom(x1, y1 int) {
 // 	x2 := x1 + 4
@@ -279,10 +303,10 @@ func (g *Grid) visitTiles() {
 		t.visited = true
 		q = q[1:] // take first tile off front of queue
 		for d := 0; d < 4; d++ {
-			if t.IsWall(d) {
+			if t.isWall(d) {
 				continue
 			}
-			tn := t.Neighbour(d)
+			tn := t.neighbour(d)
 			if tn == nil {
 				log.Fatal("open unwalled edge found in visitTiles BFS")
 			}

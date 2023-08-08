@@ -11,37 +11,55 @@ import (
 	"oddstream.games/gomaze/util"
 )
 
+const MAX_CARRYWALLS int = 9
+
 // Puck defines the yellow blob/player avatar
 type Puck struct {
 	tile                   *Tile   // tile we are sitting on
 	dest                   *Tile   // tile we are lerping to
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
-
-	puckImage *ebiten.Image
-
-	worldX, worldY float64
-
-	ball *Ball
+	puckImage              *ebiten.Image
+	wallsBeingCarried      int
+	worldX, worldY         float64
+	ball                   *Ball
 }
 
 // NewPuck creates a new Puck object
 func NewPuck(start *Tile) *Puck {
-	p := &Puck{tile: start}
+	p := &Puck{tile: start, wallsBeingCarried: MAX_CARRYWALLS / 2}
+	p.createImage()
+	p.worldX, p.worldY = p.tile.position()
+	p.SetCamera()
+	p.ball = NewBall(start)
+	return p
+}
 
+func (p *Puck) createImage() {
 	dc := gg.NewContext(TileSize, TileSize)
 	dc.SetColor(BasicColors["Yellow"])
 	dc.DrawCircle(float64(TileSize/2), float64(TileSize/2), float64(TileSize/3))
 	dc.Fill()
 	dc.Stroke()
+	dc.SetRGBA(0, 0, 0, 0.5)
+	dc.SetFontFace(TheAcmeFonts.normal)
+	dc.DrawStringAnchored(fmt.Sprint(p.wallsBeingCarried), float64(TileSize)*0.5, float64(TileSize)*0.45, 0.5, 0.5)
+	dc.Stroke()
 	p.puckImage = ebiten.NewImageFromImage(dc.Image())
+}
 
-	p.worldX, p.worldY = p.tile.Position()
-	p.SetCamera()
+func (p *Puck) CarryWall() {
+	if p.wallsBeingCarried < MAX_CARRYWALLS {
+		p.wallsBeingCarried += 1
+		p.createImage()
+	}
+}
 
-	p.ball = NewBall(start)
-
-	return p
+func (p *Puck) UncarryWall() {
+	if p.wallsBeingCarried > 0 {
+		p.wallsBeingCarried -= 1
+		p.createImage()
+	}
 }
 
 // SetCamera so that puck is at the center of the screen
@@ -60,7 +78,7 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 	// if puck is lerping, stop it
 	if p.dest != nil {
 		p.tile = p.dest
-		p.worldX, p.worldY = p.tile.Position()
+		p.worldX, p.worldY = p.tile.position()
 		p.dest = nil
 	}
 
@@ -79,10 +97,10 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 			break
 		}
 		for _, d := range []int{0, 1, 2, 3} {
-			if t.IsWall(d) {
+			if t.isWall(d) {
 				continue
 			}
-			tn := t.Neighbour(d)
+			tn := t.neighbour(d)
 			if tn == nil {
 				log.Fatal("open unwalled edge found in Puck BFS")
 			}
@@ -117,17 +135,17 @@ func (p *Puck) Update() error {
 	if p.dest == nil {
 		// if any of the neighbours are marked, move there
 		for d := 0; d < 4; d++ {
-			if p.tile.IsWall(d) {
+			if p.tile.isWall(d) {
 				continue
 			}
-			tn := p.tile.Neighbour(d)
+			tn := p.tile.neighbour(d)
 			if tn == nil {
 				log.Fatal("unwalled edge found in Puck Update")
 			}
 			if tn.marked {
 				p.dest = tn
-				p.srcX, p.srcY = p.tile.Position()
-				p.dstX, p.dstY = p.dest.Position()
+				p.srcX, p.srcY = p.tile.position()
+				p.dstX, p.dstY = p.dest.position()
 				p.lerpstep = 0
 				break
 			}
@@ -136,7 +154,7 @@ func (p *Puck) Update() error {
 		if p.lerpstep >= 1 {
 			p.tile = p.dest
 			p.tile.marked = false
-			p.worldX, p.worldY = p.tile.Position()
+			p.worldX, p.worldY = p.tile.position()
 			p.dest = nil
 		} else {
 			p.worldX = util.Lerp(p.srcX, p.dstX, p.lerpstep)
@@ -155,5 +173,7 @@ func (p *Puck) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(p.worldX, p.worldY)
 	op.GeoM.Translate(CameraX, CameraY)
 	screen.DrawImage(p.puckImage, op)
-	p.ball.Draw(screen)
+	if p.tile != p.ball.tile {
+		p.ball.Draw(screen)
+	}
 }

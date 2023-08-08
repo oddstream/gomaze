@@ -38,61 +38,61 @@ func makeTileImage(walls uint, unreachable bool) image.Image {
 	switch walls {
 	case 0:
 		// explicitly do nothing
-	case NORTH:
+	case NORTH_WALL:
 		dc.DrawLine(w, n, e, n)
-	case EAST:
+	case EAST_WALL:
 		dc.DrawLine(e, n, e, s)
-	case SOUTH:
+	case SOUTH_WALL:
 		dc.DrawLine(w, s, e, s)
-	case WEST:
+	case WEST_WALL:
 		dc.DrawLine(w, n, w, s)
 
-	case NORTH | SOUTH:
+	case NORTH_WALL | SOUTH_WALL:
 		dc.DrawLine(w, n, e, n)
 		dc.DrawLine(w, s, e, s)
-	case EAST | WEST:
+	case EAST_WALL | WEST_WALL:
 		dc.DrawLine(e, n, e, s)
 		dc.DrawLine(w, n, w, s)
 
-	case NORTH | EAST:
+	case NORTH_WALL | EAST_WALL:
 		dc.MoveTo(w, n)
 		dc.LineTo(e, n)
 		dc.LineTo(e, s)
-	case EAST | SOUTH:
+	case EAST_WALL | SOUTH_WALL:
 		dc.MoveTo(e, n)
 		dc.LineTo(e, s)
 		dc.LineTo(w, s)
-	case SOUTH | WEST:
+	case SOUTH_WALL | WEST_WALL:
 		dc.MoveTo(e, s)
 		dc.LineTo(w, s)
 		dc.LineTo(w, n)
-	case WEST | NORTH:
+	case WEST_WALL | NORTH_WALL:
 		dc.MoveTo(w, s)
 		dc.LineTo(w, n)
 		dc.LineTo(e, n)
 
-	case NORTH | EAST | SOUTH:
+	case NORTH_WALL | EAST_WALL | SOUTH_WALL:
 		dc.MoveTo(w, n)
 		dc.LineTo(e, n)
 		dc.LineTo(e, s)
 		dc.LineTo(w, s)
-	case EAST | SOUTH | WEST:
+	case EAST_WALL | SOUTH_WALL | WEST_WALL:
 		dc.MoveTo(e, n)
 		dc.LineTo(e, s)
 		dc.LineTo(w, s)
 		dc.LineTo(w, n)
-	case SOUTH | WEST | NORTH:
+	case SOUTH_WALL | WEST_WALL | NORTH_WALL:
 		dc.MoveTo(e, s)
 		dc.LineTo(w, s)
 		dc.LineTo(w, n)
 		dc.LineTo(e, n)
-	case WEST | NORTH | EAST:
+	case WEST_WALL | NORTH_WALL | EAST_WALL:
 		dc.MoveTo(w, s)
 		dc.LineTo(w, n)
 		dc.LineTo(e, n)
 		dc.LineTo(e, s)
 
-	case NORTH | EAST | SOUTH | WEST:
+	case NORTH_WALL | EAST_WALL | SOUTH_WALL | WEST_WALL:
 		dc.MoveTo(w, n)
 		dc.LineTo(e, n)
 		dc.LineTo(e, s)

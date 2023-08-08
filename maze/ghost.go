@@ -41,7 +41,7 @@ func NewGhost(start *Tile) *Ghost {
 	gh := &Ghost{tile: start}
 	gh.facing = rand.Intn(3)
 	gh.speed = 0.01 + (rand.Float64() * 0.01)
-	gh.worldX, gh.worldY = gh.tile.Position()
+	gh.worldX, gh.worldY = gh.tile.position()
 	return gh
 }
 
@@ -56,11 +56,11 @@ func NewGhost(start *Tile) *Ghost {
 
 func (gh *Ghost) isDirOkay(d int) bool {
 	// can't go through walls
-	if gh.tile.IsWall(d) {
+	if gh.tile.isWall(d) {
 		return false
 	}
 
-	tn := gh.tile.Neighbour(d)
+	tn := gh.tile.neighbour(d)
 
 	// don't like puck
 	if tn == TheGrid.puck.tile || tn == TheGrid.puck.dest {
@@ -102,21 +102,21 @@ func (gh *Ghost) Update() error {
 			newd := dirfuncs[d](gh.facing)
 			if gh.isDirOkay(newd) {
 				gh.facing = newd
-				gh.dest = gh.tile.Neighbour(newd)
+				gh.dest = gh.tile.neighbour(newd)
 				break
 			}
 		}
 		if gh.dest != nil {
 			gh.lerpstep = 0
-			gh.srcX, gh.srcY = gh.tile.Position()
-			gh.dstX, gh.dstY = gh.dest.Position()
+			gh.srcX, gh.srcY = gh.tile.position()
+			gh.dstX, gh.dstY = gh.dest.position()
 		}
 		// if gh.dest == nil, ghost has no direction
 		// this can happen when trying to stop ghosts from sitting on top of each other in Ghost.IsGoodDir()
 	} else {
 		if gh.lerpstep >= 1 {
 			gh.tile = gh.dest
-			gh.worldX, gh.worldY = gh.tile.Position()
+			gh.worldX, gh.worldY = gh.tile.position()
 			gh.dest = nil
 		} else {
 			gh.worldX = util.Lerp(gh.srcX, gh.dstX, gh.lerpstep)

@@ -4,7 +4,6 @@ package util
 
 import (
 	"image"
-	"math"
 )
 
 // InRect returns true if px,py is within Rect returned by function parameter
@@ -38,9 +37,9 @@ func MapValue(value, fromMin, fromMax, toMin, toMax float64) float64 {
 }
 
 // Clamp a value between min and max values
-func Clamp(value, min, max float64) float64 {
-	return math.Min(math.Max(value, min), max)
-}
+// func Clamp(value, min, max float64) float64 {
+// 	return math.Min(math.Max(value, min), max)
+// }
 
 // https://stackoverflow.com/questions/51626905/drawing-circles-with-two-radius-in-golang
 // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
@@ -92,4 +91,18 @@ func Leftward(dir int) int {
 func Rightward(dir int) int {
 	d := [4]int{1, 2, 3, 0}
 	return d[dir]
+}
+
+func sign(p1, p2, p3 image.Point) int {
+	return (p1.X-p3.X)*(p2.Y-p3.Y) - (p2.X-p3.X)*(p1.Y-p3.Y)
+}
+
+// https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle#2049593
+func PointInTriangle(pt, v1, v2, v3 image.Point) bool {
+	d1 := sign(pt, v1, v2)
+	d2 := sign(pt, v2, v3)
+	d3 := sign(pt, v3, v1)
+	has_neg := (d1 < 0) || (d2 < 0) || (d3 < 0)
+	has_pos := (d1 > 0) || (d2 > 0) || (d3 > 0)
+	return !(has_neg && has_pos)
 }

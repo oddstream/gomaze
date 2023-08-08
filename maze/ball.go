@@ -34,7 +34,7 @@ func NewBall(start *Tile) *Ball {
 	dc.Stroke()
 	b.ballImage = ebiten.NewImageFromImage(dc.Image())
 
-	b.worldX, b.worldY = b.tile.Position()
+	b.worldX, b.worldY = b.tile.position()
 
 	return b
 }
@@ -42,8 +42,8 @@ func NewBall(start *Tile) *Ball {
 // StartThrow to a target tile
 func (b *Ball) StartThrow(to *Tile) {
 	b.dest = to
-	b.srcX, b.srcY = b.tile.Position()
-	b.dstX, b.dstY = b.dest.Position()
+	b.srcX, b.srcY = b.tile.position()
+	b.dstX, b.dstY = b.dest.position()
 	b.lerpstep = 0.05
 }
 
@@ -64,7 +64,7 @@ func (b *Ball) Update() error {
 		if b.lerpstep >= 1 {
 			b.tile = b.dest
 			b.dest = nil
-			b.worldX, b.worldY = b.tile.Position()
+			b.worldX, b.worldY = b.tile.position()
 		} else {
 			b.worldX = util.Smoothstep(b.srcX, b.dstX, b.lerpstep)
 			b.worldY = util.Smoothstep(b.srcY, b.dstY, b.lerpstep)

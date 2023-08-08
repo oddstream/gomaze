@@ -16,7 +16,8 @@ $ sudo tar -C /usr/local -xzf go1.16.3.linux-amd64.tar.gz
 	ebiten.Image.Size()
 	ebiten.CurrentTPS()
 
-[ ] retire WASD and use tap on puck location
+[X] retire WASD to toggle wall
+[X] puck carries a number of walls
 
 ? https://tinygo.org/
 ? ghosts that hide in cul-de-sacs, different colors

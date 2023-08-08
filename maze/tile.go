@@ -4,20 +4,22 @@ package maze
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"math/rand"
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
+	"oddstream.games/gomaze/util"
 )
 
-// NORTH EAST SOUTH WEST bit patterns for presence of walls
+// NORTH_WALL EAST_WALL SOUTH_WALL WEST_WALL bit patterns for presence of walls
 const (
-	NORTH = 0b0001 // 1 << iota
-	EAST  = 0b0010 // 1 << 1
-	SOUTH = 0b0100 // 1 << 2
-	WEST  = 0b1000 // 1 << 3
-	MASK  = 0b1111
+	NORTH_WALL = 0b0001 // 1 << iota
+	EAST_WALL  = 0b0010 // 1 << 1
+	SOUTH_WALL = 0b0100 // 1 << 2
+	WEST_WALL  = 0b1000 // 1 << 3
+	ALL_WALLS  = 0b1111
 )
 
 var (
@@ -26,8 +28,8 @@ var (
 	dotImage          *ebiten.Image
 	overSize          float64
 	// halfTileSize      float64
-	wallbits = [4]uint{NORTH, EAST, SOUTH, WEST} // map a direction (0..3) to it's bits
-	wallopps = [4]uint{SOUTH, WEST, NORTH, EAST} // map a direction (0..3) to it's opposite bits
+	wallbits = [4]uint{NORTH_WALL, EAST_WALL, SOUTH_WALL, WEST_WALL} // map a direction (0..3) to it's bits
+	wallopps = [4]uint{SOUTH_WALL, WEST_WALL, NORTH_WALL, EAST_WALL} // map a direction (0..3) to it's opposite bits
 	// oppdirs  = [4]int{2, 3, 0, 1}
 )
 
@@ -85,20 +87,20 @@ type Tile struct {
 // NewTile creates a new Tile object and returns a pointer to it
 // all new tiles start with all four walls before they are carved later
 func NewTile(x, y int) *Tile {
-	t := &Tile{X: x, Y: y, walls: MASK}
+	t := &Tile{X: x, Y: y, walls: ALL_WALLS}
 	// worldX, worldY will be (re)set by Layout()
 	return t
 }
 
-// Reset prepares a Tile for a new level by resetting just gameplay data, not structural data
-func (t *Tile) Reset() {
-	t.walls = MASK
-	t.visited = false
-	t.parent = nil
-}
+// reset prepares a Tile for a new level by resetting just gameplay data, not structural data
+// func (t *Tile) reset() {
+// 	t.walls = ALL_WALLS
+// 	t.visited = false
+// 	t.parent = nil
+// }
 
-// Rect gives the x,y screen coords of the tile's top left and bottom right corners
-func (t *Tile) Rect() (x0 int, y0 int, x1 int, y1 int) {
+// rect gives the x,y screen coords of the tile's top left and bottom right corners
+func (t *Tile) rect() (x0 int, y0 int, x1 int, y1 int) {
 	x0 = t.X * TileSize
 	y0 = t.Y * TileSize
 	x1 = x0 + TileSize
@@ -106,37 +108,37 @@ func (t *Tile) Rect() (x0 int, y0 int, x1 int, y1 int) {
 	return // using named return parameters
 }
 
-// Neighbour returns the neighbouring tile in that direction
-func (t *Tile) Neighbour(d int) *Tile {
+// neighbour returns the neighbouring tile in that direction
+func (t *Tile) neighbour(d int) *Tile {
 	return t.edges[d]
 }
 
-// IsWall returns true if there is a wall in that direction
-func (t *Tile) IsWall(d int) bool {
+// isWall returns true if there is a wall in that direction
+func (t *Tile) isWall(d int) bool {
 	bit := wallbits[d]
 	return t.walls&bit == bit
 }
 
 func (t *Tile) addWall(d int) {
 	t.walls |= wallbits[d]
-	if tn := t.Neighbour(d); tn != nil {
+	if tn := t.neighbour(d); tn != nil {
 		tn.walls |= wallopps[d]
 	}
 }
 
 func (t *Tile) removeWall(d int) {
-	if tn := t.Neighbour(d); tn != nil {
+	if tn := t.neighbour(d); tn != nil {
 		var mask uint
-		mask = MASK & (^wallbits[d])
+		mask = ALL_WALLS & (^wallbits[d])
 		t.walls &= mask
-		mask = MASK & (^wallopps[d])
+		mask = ALL_WALLS & (^wallopps[d])
 		tn.walls &= mask
 	}
 }
 
 func (t *Tile) toggleWall(d int) {
-	if tn := t.Neighbour(d); tn != nil {
-		if t.IsWall(d) {
+	if tn := t.neighbour(d); tn != nil {
+		if t.isWall(d) {
 			t.removeWall(d)
 		} else {
 			t.addWall(d)
@@ -174,7 +176,7 @@ func (t *Tile) recursiveBacktracker() {
 	dirs := rand.Perm(4)
 	for d := 0; d < 4; d++ {
 		dir := dirs[d]
-		tn := t.Neighbour(dir)
+		tn := t.neighbour(dir)
 		if tn != nil && !tn.visited {
 			t.removeWall(dir)
 			tn.visited = true
@@ -183,11 +185,36 @@ func (t *Tile) recursiveBacktracker() {
 	}
 }
 
-// Position of this tile (top left origin) in screen coords
-func (t *Tile) Position() (float64, float64) {
+// position of this tile (top left origin) in screen coords
+func (t *Tile) position() (float64, float64) {
 	// Tile.Layout() may not have been called yet
 	return float64(t.X * TileSize), float64(t.Y * TileSize)
 	// return t.worldX, t.worldY
+}
+
+// whichQuadrant - given a point (in screen/world coords) that is assumed to be on this tile,
+// return which direction/quadrant (0,1,2,3) the point is within. Imagine a diagonal cross
+// on the tile. TODO this looks fugly.
+func (t *Tile) whichQuadrant(pt image.Point) int {
+	topLeft := image.Point{X: int(t.worldX), Y: int(t.worldY)}
+	topRight := image.Point{X: int(t.worldX) + TileSize, Y: int(t.worldY)}
+	center := image.Point{X: int(t.worldX) + (TileSize / 2), Y: int(t.worldY) + (TileSize / 2)}
+	bottomLeft := image.Point{X: int(t.worldX), Y: int(t.worldY) + TileSize}
+	bottomRight := image.Point{X: int(t.worldX) + TileSize, Y: int(t.worldY) + TileSize}
+	if util.PointInTriangle(pt, topLeft, topRight, center) {
+		return 0
+	}
+	if util.PointInTriangle(pt, topRight, bottomRight, center) {
+		return 1
+	}
+	if util.PointInTriangle(pt, bottomLeft, bottomRight, center) {
+		return 2
+	}
+	if util.PointInTriangle(pt, topLeft, bottomLeft, center) {
+		return 3
+	}
+
+	return -1
 }
 
 // String representation of this tile
