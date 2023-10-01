@@ -18,7 +18,7 @@ import (
 
 const (
 	// TileSize is now a constant
-	TileSize = 100
+	TileSize = 80
 	// MaxGhosts limit that can fit in 3x3 pen
 	MaxGhosts = 8
 )
@@ -108,7 +108,7 @@ func NewGrid(w, h, ghostCount int) *Grid {
 
 	g.carve()
 
-	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2))
+	g.puck = NewPuck(g.findTile(TilesAcross/2, TilesDown/2), BasicColors["Yellow"])
 
 	if ghostCount > MaxGhosts {
 		ghostCount = MaxGhosts
@@ -143,12 +143,8 @@ func (g *Grid) NotifyCallback(event interface{}) {
 				if t.neighbour(dir) != nil {
 					if t.isWall(dir) {
 						t.removeWall(dir)
-						g.puck.CarryWall()
 					} else {
-						if g.puck.wallsBeingCarried > 0 {
-							t.addWall(dir)
-							g.puck.UncarryWall()
-						}
+						t.addWall(dir)
 					}
 				}
 				// g.puck.tile.toggleWall(t.whichQuadrant(pt))
@@ -274,7 +270,8 @@ func (g *Grid) randomTile() *Tile {
 
 func (g *Grid) carve() {
 	t := g.randomTile()
-	t.recursiveBacktracker()
+	// t.recursiveBacktracker()
+	t.prim()
 }
 
 // func (g *Grid) fillCulDeSacs() {

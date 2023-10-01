@@ -45,7 +45,7 @@ func NewAcmeFonts() *AcmeFonts {
 		Hinting: font.HintingFull,
 	})
 	af.huge = truetype.NewFace(tt, &truetype.Options{
-		Size:    256,
+		Size:    128,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})

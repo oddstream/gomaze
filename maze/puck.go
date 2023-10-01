@@ -4,14 +4,13 @@ package maze
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 
 	"github.com/fogleman/gg"
 	"github.com/hajimehoshi/ebiten/v2"
 	"oddstream.games/gomaze/util"
 )
-
-const MAX_CARRYWALLS int = 9
 
 // Puck defines the yellow blob/player avatar
 type Puck struct {
@@ -20,46 +19,28 @@ type Puck struct {
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
 	puckImage              *ebiten.Image
-	wallsBeingCarried      int
 	worldX, worldY         float64
+	col                    color.RGBA
 	ball                   *Ball
 }
 
 // NewPuck creates a new Puck object
-func NewPuck(start *Tile) *Puck {
-	p := &Puck{tile: start, wallsBeingCarried: MAX_CARRYWALLS / 2}
+func NewPuck(start *Tile, col color.RGBA) *Puck {
+	p := &Puck{tile: start, col: col}
 	p.createImage()
 	p.worldX, p.worldY = p.tile.position()
 	p.SetCamera()
-	p.ball = NewBall(start)
+	p.ball = NewBall(start, col)
 	return p
 }
 
 func (p *Puck) createImage() {
 	dc := gg.NewContext(TileSize, TileSize)
-	dc.SetColor(BasicColors["Yellow"])
+	dc.SetColor(p.col)
 	dc.DrawCircle(float64(TileSize/2), float64(TileSize/2), float64(TileSize/3))
 	dc.Fill()
 	dc.Stroke()
-	dc.SetRGBA(0, 0, 0, 0.5)
-	dc.SetFontFace(TheAcmeFonts.normal)
-	dc.DrawStringAnchored(fmt.Sprint(p.wallsBeingCarried), float64(TileSize)*0.5, float64(TileSize)*0.45, 0.5, 0.5)
-	dc.Stroke()
 	p.puckImage = ebiten.NewImageFromImage(dc.Image())
-}
-
-func (p *Puck) CarryWall() {
-	if p.wallsBeingCarried < MAX_CARRYWALLS {
-		p.wallsBeingCarried += 1
-		p.createImage()
-	}
-}
-
-func (p *Puck) UncarryWall() {
-	if p.wallsBeingCarried > 0 {
-		p.wallsBeingCarried -= 1
-		p.createImage()
-	}
 }
 
 // SetCamera so that puck is at the center of the screen
@@ -122,7 +103,7 @@ func (p *Puck) String() string {
 	return fmt.Sprintf("(%v,%v)", p.tile.X, p.tile.Y)
 }
 
-// Update the state/position of the Puck
+// Update the state/position of the Puck and it's ball
 func (p *Puck) Update() error {
 
 	p.ball.Update()
@@ -167,7 +148,7 @@ func (p *Puck) Update() error {
 	return nil
 }
 
-// Draw the Puck
+// Draw the Puck, and maybe it's ball
 func (p *Puck) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(p.worldX, p.worldY)

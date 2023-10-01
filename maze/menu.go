@@ -20,7 +20,7 @@ func NewMenu() *Menu {
 	s.widgets = []Widget{
 		NewLabel("CAN YOU HERD GHOST KITTENS?", TheAcmeFonts.large),
 		NewLabel("Move the yellow blob by tapping where you want it to go", TheAcmeFonts.normal),
-		NewLabel("Build/demolish walls by tapping on the yellow blob", TheAcmeFonts.normal),
+		NewLabel("Build/demolish walls using the WASD keys", TheAcmeFonts.normal),
 		NewLabel("Herd the ghost kittens into the square in the middle", TheAcmeFonts.normal),
 		NewTextButton("START", 200, 50, TheAcmeFonts.normal, func() {
 			TheUserData.CompletedLevels = 0

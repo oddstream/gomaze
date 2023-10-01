@@ -1,3 +1,5 @@
+Building WASM
+=============
 $ GOOS=js GOARCH=wasm go build -o ../oddstream.github.io/Herding/gomaze.wasm -x -ldflags="-s -w" -tags browser
 $ GOOS=js GOARCH=wasm go build -o ../oddstream.github.io/Herding/gomaze.wasm -ldflags="-s -w" -tags browser
 open a terminal in /oddstream.github.io/Herding
@@ -16,6 +18,25 @@ $ sudo tar -C /usr/local -xzf go1.16.3.linux-amd64.tar.gz
 	ebiten.Image.Size()
 	ebiten.CurrentTPS()
 
+Sacred Canonical Immutable
+==========================
+Single tap (no dragging, long taps, double taps)
+
+TODO
+====
+[ ] multiple pucks, red green blue yellow &c
+	select grid.activePuck by tapping on an inactive one
+	only grid.activePuck can move walls
+	only grid.activePuck gets to puck.SetCamera()
+	there is always an activePuck
+	Tile.marked will have to change to a bit field or something, else the pucks follow each other's paths
+[ ] puck can only carry one wall?
+	the toggle wall mechanic is too fiddly for that
+
+[ ] drag and drop puck(s) instead of throwing ball
+	still shows path to be taken, though
+[ ] https://en.wikipedia.org/wiki/Sokoban
+	push blocks around to herd ghost kittens
 [X] retire WASD to toggle wall
 [X] puck carries a number of walls
 
@@ -34,9 +55,11 @@ https://github.com/munificent/hauberk/blob/db360d9efa714efb6d937c31953ef849c7394
 
 - don't fill in cul-de-sacs, corners become ugly
 
-+ herding cats
+OTHER IDEAS
+===========
+Kittens has one puck and multiple ghosts. Try multiple pucks and one ghost?
 
-+ spider in a web; puck is a spider, ghosts are flies
+Spider in a web; puck is a spider, ghosts are flies
 	spiders can build webs, delete webs
 	make baby spiders
 	lay traps for flies, eat them later

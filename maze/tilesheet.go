@@ -31,7 +31,7 @@ func makeTileImage(walls uint, unreachable bool) image.Image {
 		dc.Stroke()
 	}
 
-	dc.SetRGB(0, 0, 0)
+	dc.SetRGBA(0, 0, 0, 1) // black walls, get recolored when drawn
 	dc.SetLineWidth(lineWidth)
 	dc.SetLineCap(gg.LineCapRound)
 
@@ -98,9 +98,7 @@ func makeTileImage(walls uint, unreachable bool) image.Image {
 		dc.LineTo(e, s)
 		dc.LineTo(w, s)
 		dc.ClosePath()
-		// dc.FillPreserve()
 
-		// dc.DrawRoundedRectangle(w, n, float64(tileSize), float64(tileSize), lineWidth)
 	default:
 		log.Fatal("makeTile called with wrong bits", walls)
 	}

@@ -40,7 +40,7 @@ type Ghost struct {
 func NewGhost(start *Tile) *Ghost {
 	gh := &Ghost{tile: start}
 	gh.facing = rand.Intn(3)
-	gh.speed = 0.01 + (rand.Float64() * 0.01)
+	gh.speed = 0.01 + (rand.Float64() * 0.02)
 	gh.worldX, gh.worldY = gh.tile.position()
 	return gh
 }

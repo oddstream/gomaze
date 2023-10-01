@@ -10,7 +10,7 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}",
-      "args": ["-debug"],
+      "args": ["-debug", "-width=1080", "-height=1080"],
     //   "buildFlags": "-tags=desktop"
     }
   ]

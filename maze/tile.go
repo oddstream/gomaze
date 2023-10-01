@@ -27,9 +27,8 @@ var (
 	unreachableImages map[uint]*ebiten.Image
 	dotImage          *ebiten.Image
 	overSize          float64
-	// halfTileSize      float64
-	wallbits = [4]uint{NORTH_WALL, EAST_WALL, SOUTH_WALL, WEST_WALL} // map a direction (0..3) to it's bits
-	wallopps = [4]uint{SOUTH_WALL, WEST_WALL, NORTH_WALL, EAST_WALL} // map a direction (0..3) to it's opposite bits
+	wallbits          = [4]uint{NORTH_WALL, EAST_WALL, SOUTH_WALL, WEST_WALL} // map a direction (0..3) to it's bits
+	wallopps          = [4]uint{SOUTH_WALL, WEST_WALL, NORTH_WALL, EAST_WALL} // map a direction (0..3) to it's opposite bits
 	// oppdirs  = [4]int{2, 3, 0, 1}
 )
 
@@ -38,7 +37,6 @@ func init() {
 		log.Fatal("Tile dimensions not set")
 	}
 
-	// var makeFunc func(uint) image.Image = makeTile
 	reachableImages = make(map[uint]*ebiten.Image, 16)
 	for i := uint(0); i < 16; i++ {
 		img := makeTileImage(i, false)
@@ -51,16 +49,14 @@ func init() {
 	}
 
 	// the tiles are all the same size, so pre-calc some useful variables
-	// actualTileSize, _ := reachableImages[0].Size()
 	actualTileSize := reachableImages[0].Bounds().Dx()
-	// halfTileSize = float64(actualTileSize) / 2
 	overSize = float64((actualTileSize - TileSize) / 2)
 
 	{
 		mid := float64(actualTileSize / 2)
 		dc := gg.NewContext(actualTileSize, actualTileSize)
-		dc.SetRGB(1, 1, 0)
-		dc.DrawCircle(mid, mid, 3)
+		dc.SetRGBA(0, 0, 0, 0.5)
+		dc.DrawCircle(mid, mid, 2)
 		dc.Fill()
 		dc.Stroke()
 		dotImage = ebiten.NewImageFromImage(dc.Image())
@@ -129,9 +125,11 @@ func (t *Tile) addWall(d int) {
 func (t *Tile) removeWall(d int) {
 	if tn := t.neighbour(d); tn != nil {
 		var mask uint
-		mask = ALL_WALLS & (^wallbits[d])
+		// unset the wall bit on this tile
+		mask = ALL_WALLS & ^wallbits[d]
 		t.walls &= mask
-		mask = ALL_WALLS & (^wallopps[d])
+		// unset the opposite wall bit on the neighbour tile
+		mask = ALL_WALLS & ^wallopps[d]
 		tn.walls &= mask
 	}
 }
@@ -182,6 +180,71 @@ func (t *Tile) recursiveBacktracker() {
 			tn.visited = true
 			tn.recursiveBacktracker()
 		}
+	}
+}
+
+// mark this tile as 'in'
+// and then adds marked/in neighbours to the frontier tiles
+func (t *Tile) primMark(pfrontier *[]*Tile) {
+	t.visited = true
+	for _, dir := range [4]int{0, 1, 2, 3} {
+		n := t.edges[dir]
+		if n != nil && !n.visited {
+			*pfrontier = append(*pfrontier, n)
+		}
+	}
+}
+
+// return all the 'in' neighbours
+func (t *Tile) primNeighbours() []*Tile {
+	var lst []*Tile = []*Tile{}
+	for _, dir := range [4]int{0, 1, 2, 3} {
+		n := t.edges[dir]
+		if n != nil && n.visited {
+			lst = append(lst, n)
+		}
+	}
+	return lst
+}
+
+func primWhichDirIs(src, dst *Tile) int {
+	for _, dir := range [4]int{0, 1, 2, 3} {
+		if src.edges[dir] == dst {
+			return dir
+		}
+	}
+	return -1
+}
+
+func (t *Tile) prim() {
+	if t.visited != false {
+		log.Fatal("Tile.visited is true")
+	}
+	var frontier []*Tile = []*Tile{}
+	t.primMark(&frontier)
+	for len(frontier) > 0 {
+		// remove a random frontier tile
+
+		// we do not care about ordering,
+		// so replace the element to delete with the one at the end of the slice
+		// and then return the first len-1 elements
+		i := rand.Intn(len(frontier))
+		t1 := frontier[i]
+		frontier[i] = frontier[len(frontier)-1]
+		frontier = frontier[:len(frontier)-1]
+		lst := t1.primNeighbours()
+		t2 := lst[rand.Intn(len(lst))]
+		if (t1.visited && !t2.visited) || (!t1.visited && t2.visited) {
+			// remove wall between t1 and t2
+			dir := primWhichDirIs(t1, t2)
+			if dir == -1 {
+				log.Fatal("dir is -1")
+			}
+			t1.removeWall(dir)
+		}
+		// mark the frontier tile as being 'in' the maze
+		// (and add any of it's outside neighbours to the frontier)
+		t1.primMark(&frontier)
 	}
 }
 
@@ -275,14 +338,15 @@ func (t *Tile) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(CameraX, CameraY)
 
 	// Reset RGB (not Alpha) forcibly
-	// tilesheet already has black shapes
+	// tilesheet already has black wall shapes
+	// turn black into TheGrid.colorWall
 	{
 		var r, g, b float64
-		// op.ColorM.Scale(0, 0, 0, 1)
 		r = float64(TheGrid.colorWall.R) / 0xff
 		g = float64(TheGrid.colorWall.G) / 0xff
 		b = float64(TheGrid.colorWall.B) / 0xff
 		op.ColorM.Translate(r, g, b, 0)
+		// op.ColorScale.Scale(r, g, b, 1)
 	}
 
 	if t.visited {

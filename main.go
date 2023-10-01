@@ -40,7 +40,7 @@ func main() {
 	}
 	ebiten.SetWindowTitle("Maze")                             // does nothing when runtime.GOARCH == "wasm"
 	ebiten.SetWindowSize(maze.WindowWidth, maze.WindowHeight) // does nothing when runtime.GOARCH == "wasm"
-	ebiten.SetWindowResizable(true)                           // does nothing when runtime.GOARCH == "wasm"
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
