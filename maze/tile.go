@@ -1,5 +1,3 @@
-// Copyright ©️ 2021 oddstream.games
-
 package maze
 
 import (
@@ -20,6 +18,11 @@ const (
 	SOUTH_WALL = 0b0100 // 1 << 2
 	WEST_WALL  = 0b1000 // 1 << 3
 	ALL_WALLS  = 0b1111
+
+	NORTH = 0
+	EAST  = 1
+	SOUTH = 2
+	WEST  = 3
 )
 
 var (
@@ -30,7 +33,10 @@ var (
 	wallbits          = [4]uint{NORTH_WALL, EAST_WALL, SOUTH_WALL, WEST_WALL} // map a direction (0..3) to it's bits
 	wallopps          = [4]uint{SOUTH_WALL, WEST_WALL, NORTH_WALL, EAST_WALL} // map a direction (0..3) to it's opposite bits
 	// oppdirs  = [4]int{2, 3, 0, 1}
+	ALL_DIRECTIONS = [4]Direction{NORTH, EAST, SOUTH, WEST}
 )
+
+type Direction int
 
 func init() {
 	if TileSize == 0 {
@@ -105,24 +111,24 @@ func (t *Tile) rect() (x0 int, y0 int, x1 int, y1 int) {
 }
 
 // neighbour returns the neighbouring tile in that direction
-func (t *Tile) neighbour(d int) *Tile {
+func (t *Tile) neighbour(d Direction) *Tile {
 	return t.edges[d]
 }
 
 // isWall returns true if there is a wall in that direction
-func (t *Tile) isWall(d int) bool {
+func (t *Tile) isWall(d Direction) bool {
 	bit := wallbits[d]
 	return t.walls&bit == bit
 }
 
-func (t *Tile) addWall(d int) {
+func (t *Tile) addWall(d Direction) {
 	t.walls |= wallbits[d]
 	if tn := t.neighbour(d); tn != nil {
 		tn.walls |= wallopps[d]
 	}
 }
 
-func (t *Tile) removeWall(d int) {
+func (t *Tile) removeWall(d Direction) {
 	if tn := t.neighbour(d); tn != nil {
 		var mask uint
 		// unset the wall bit on this tile
@@ -134,7 +140,7 @@ func (t *Tile) removeWall(d int) {
 	}
 }
 
-func (t *Tile) toggleWall(d int) {
+func (t *Tile) toggleWall(d Direction) {
 	if tn := t.neighbour(d); tn != nil {
 		if t.isWall(d) {
 			t.removeWall(d)
@@ -145,7 +151,7 @@ func (t *Tile) toggleWall(d int) {
 }
 
 func (t *Tile) removeAllWalls() {
-	for d := 0; d < 4; d++ {
+	for _, d := range ALL_DIRECTIONS {
 		t.removeWall(d)
 	}
 }
@@ -169,9 +175,9 @@ func (t *Tile) removeAllWalls() {
 // }
 
 func (t *Tile) recursiveBacktracker() {
-	// dirs := [4]int{0, 1, 2, 3}
-	// rand.Shuffle(len(dirs), func(i, j int) { dirs[i], dirs[j] = dirs[j], dirs[i] })
-	dirs := rand.Perm(4)
+	dirs := [4]Direction{0, 1, 2, 3}
+	rand.Shuffle(len(dirs), func(i, j int) { dirs[i], dirs[j] = dirs[j], dirs[i] })
+	// dirs := rand.Perm(4)
 	for d := 0; d < 4; d++ {
 		dir := dirs[d]
 		tn := t.neighbour(dir)
@@ -187,7 +193,7 @@ func (t *Tile) recursiveBacktracker() {
 // and then adds marked/in neighbours to the frontier tiles
 func (t *Tile) primMark(pfrontier *[]*Tile) {
 	t.visited = true
-	for _, dir := range [4]int{0, 1, 2, 3} {
+	for _, dir := range ALL_DIRECTIONS {
 		n := t.edges[dir]
 		if n != nil && !n.visited {
 			*pfrontier = append(*pfrontier, n)
@@ -198,7 +204,7 @@ func (t *Tile) primMark(pfrontier *[]*Tile) {
 // return all the 'in' neighbours
 func (t *Tile) primNeighbours() []*Tile {
 	var lst []*Tile = []*Tile{}
-	for _, dir := range [4]int{0, 1, 2, 3} {
+	for _, dir := range ALL_DIRECTIONS {
 		n := t.edges[dir]
 		if n != nil && n.visited {
 			lst = append(lst, n)
@@ -207,8 +213,8 @@ func (t *Tile) primNeighbours() []*Tile {
 	return lst
 }
 
-func primWhichDirIs(src, dst *Tile) int {
-	for _, dir := range [4]int{0, 1, 2, 3} {
+func primWhichDirIs(src, dst *Tile) Direction {
+	for _, dir := range ALL_DIRECTIONS {
 		if src.edges[dir] == dst {
 			return dir
 		}
@@ -217,7 +223,7 @@ func primWhichDirIs(src, dst *Tile) int {
 }
 
 func (t *Tile) prim() {
-	if t.visited != false {
+	if t.visited {
 		log.Fatal("Tile.visited is true")
 	}
 	var frontier []*Tile = []*Tile{}
@@ -258,23 +264,23 @@ func (t *Tile) position() (float64, float64) {
 // whichQuadrant - given a point (in screen/world coords) that is assumed to be on this tile,
 // return which direction/quadrant (0,1,2,3) the point is within. Imagine a diagonal cross
 // on the tile. TODO this looks fugly.
-func (t *Tile) whichQuadrant(pt image.Point) int {
+func (t *Tile) whichQuadrant(pt image.Point) Direction {
 	topLeft := image.Point{X: int(t.worldX), Y: int(t.worldY)}
 	topRight := image.Point{X: int(t.worldX) + TileSize, Y: int(t.worldY)}
 	center := image.Point{X: int(t.worldX) + (TileSize / 2), Y: int(t.worldY) + (TileSize / 2)}
 	bottomLeft := image.Point{X: int(t.worldX), Y: int(t.worldY) + TileSize}
 	bottomRight := image.Point{X: int(t.worldX) + TileSize, Y: int(t.worldY) + TileSize}
 	if util.PointInTriangle(pt, topLeft, topRight, center) {
-		return 0
+		return NORTH
 	}
 	if util.PointInTriangle(pt, topRight, bottomRight, center) {
-		return 1
+		return EAST
 	}
 	if util.PointInTriangle(pt, bottomLeft, bottomRight, center) {
-		return 2
+		return SOUTH
 	}
 	if util.PointInTriangle(pt, topLeft, bottomLeft, center) {
-		return 3
+		return WEST
 	}
 
 	return -1

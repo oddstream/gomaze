@@ -1,5 +1,3 @@
-// Copyright ©️ 2020-2021 oddstream.games
-
 package maze
 
 import (
@@ -68,7 +66,7 @@ type Palette = []string
 // Palettes a slice of Palette
 var Palettes = []Palette{
 	{"SteelBlue", "CornflowerBlue", "SkyBlue", "LightSteelBlue", "LightBlue", "PowderBlue"},
-	{"MediumVioletRed", "DeepPink", "PaleVioletRed", "HotPink", "LightPink", "Pink"},
+	// {"MediumVioletRed", "DeepPink", "PaleVioletRed", "HotPink", "LightPink", "Pink"},
 	{"Gold", "Khaki", "PeachPuff", "PaleGoldenRod", "Moccasin", "PapayaWhip", "DarkKhaki", "Yellow"},
 }
 

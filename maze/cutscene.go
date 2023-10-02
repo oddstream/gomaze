@@ -1,5 +1,3 @@
-// Copyright ©️ 2021 oddstream.games
-
 package maze
 
 import (

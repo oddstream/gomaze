@@ -1,5 +1,3 @@
-// Copyright ©️ 2021 oddstream.games
-
 package maze
 
 import (
@@ -10,27 +8,50 @@ import (
 )
 
 var (
-	ghostImages        map[int]*ebiten.Image
-	directionlessImage *ebiten.Image
+	ghostImages             map[int]*ebiten.Image
+	directionlessGhostImage *ebiten.Image
 )
 
 func init() {
 	ghostImages = make(map[int]*ebiten.Image, 4)
 	for d := 0; d < 4; d++ {
-		img := makeGhostImage(d)
+		img := makeNPCImage(d, "")
 		ghostImages[d] = ebiten.NewImageFromImage(img)
 	}
-	directionlessImage = ebiten.NewImageFromImage(makeGhostImage(-1))
+	directionlessGhostImage = ebiten.NewImageFromImage(makeNPCImage(-1, ""))
 }
 
-type dirfunc func(int) int
+// Forward returns the direction (0-3)
+func Forward(dir Direction) Direction {
+	return dir
+}
 
-// Ghost defines the yellow blob/player avatar
+// Backward returns the direction (0-3)
+func Backward(dir Direction) Direction {
+	d := [4]Direction{SOUTH, WEST, NORTH, EAST}
+	return d[dir]
+}
+
+// Leftward returns the direction (0-3)
+func Leftward(dir Direction) Direction {
+	d := [4]Direction{WEST, NORTH, EAST, SOUTH}
+	return d[dir]
+}
+
+// Rightward returns the direction (0-3)
+func Rightward(dir Direction) Direction {
+	d := [4]Direction{EAST, SOUTH, WEST, NORTH}
+	return d[dir]
+}
+
+type dirfunc func(Direction) Direction
+
+// Ghost is a direction-following NPC that tries to avoid the Puck
 type Ghost struct {
-	tile                   *Tile   // tile we are sitting on
-	dest                   *Tile   // tile we are lerping to
-	facing                 int     // 0,1,2,3
-	srcX, srcY, dstX, dstY float64 // positions for lerp
+	tile                   *Tile     // tile we are sitting on
+	dest                   *Tile     // tile we are lerping to
+	facing                 Direction // NORTH || EAST || SOUTH || WEST
+	srcX, srcY, dstX, dstY float64   // positions for lerp
 	lerpstep               float64
 	speed                  float64
 	worldX, worldY         float64
@@ -39,7 +60,7 @@ type Ghost struct {
 // NewGhost creates a new Ghost object
 func NewGhost(start *Tile) *Ghost {
 	gh := &Ghost{tile: start}
-	gh.facing = rand.Intn(3)
+	gh.facing = Direction(rand.Intn(3))
 	gh.speed = 0.01 + (rand.Float64() * 0.02)
 	gh.worldX, gh.worldY = gh.tile.position()
 	return gh
@@ -54,7 +75,7 @@ func NewGhost(start *Tile) *Ghost {
 // 	return false
 // }
 
-func (gh *Ghost) isDirOkay(d int) bool {
+func (gh *Ghost) isDirOkay(d Direction) bool {
 	// can't go through walls
 	if gh.tile.isWall(d) {
 		return false
@@ -94,9 +115,9 @@ func (gh *Ghost) Update() error {
 	if gh.dest == nil {
 		var dirfuncs [4]dirfunc
 		if rand.Float64() < 0.5 {
-			dirfuncs = [4]dirfunc{util.Leftward, util.Forward, util.Rightward, util.Backward}
+			dirfuncs = [4]dirfunc{Leftward, Forward, Rightward, Backward}
 		} else {
-			dirfuncs = [4]dirfunc{util.Rightward, util.Forward, util.Leftward, util.Backward}
+			dirfuncs = [4]dirfunc{Rightward, Forward, Leftward, Backward}
 		}
 		for d := 0; d < 4; d++ {
 			newd := dirfuncs[d](gh.facing)
@@ -134,8 +155,8 @@ func (gh *Ghost) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(gh.worldX, gh.worldY)
 	op.GeoM.Translate(CameraX, CameraY)
 	if gh.dest == nil {
-		screen.DrawImage(directionlessImage, op)
+		screen.DrawImage(directionlessGhostImage, op)
 	} else {
-		screen.DrawImage(ghostImages[gh.facing], op)
+		screen.DrawImage(ghostImages[int(gh.facing)], op)
 	}
 }

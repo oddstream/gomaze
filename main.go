@@ -1,5 +1,3 @@
-// Copyright ©️ 2021 oddstream.games
-
 // go mod init oddstream.games/gomaze
 // go mod tidy
 

@@ -1,5 +1,3 @@
-// Copyright ©️ 2021 oddstream.games
-
 package maze
 
 import (
@@ -40,6 +38,7 @@ type Grid struct {
 	input              *Input
 	puck               *Puck
 	ghosts             []*Ghost
+	meanies            []*Meanie
 	penImage           *ebiten.Image
 	penX, penY         float64
 	minimapImage       *ebiten.Image
@@ -172,6 +171,8 @@ func (g *Grid) NotifyCallback(event interface{}) {
 		case ebiten.KeyA:
 			g.puck.tile.toggleWall(3)
 			g.visitTiles()
+		case ebiten.KeyM:
+			g.meanies = append(g.meanies, NewMeanie(g.randomTile()))
 		}
 	}
 }
@@ -220,6 +221,38 @@ func (g *Grid) findTileAt(pt image.Point) *Tile {
 func (g *Grid) randomTile() *Tile {
 	i := rand.Intn(len(g.tiles))
 	return g.tiles[i]
+}
+
+// BFS does a breadth first search and sets Tile.parent
+// to form a path from start to dest tiles.
+func (g *Grid) BFS(start, dst *Tile) {
+	g.AllTiles(func(t *Tile) { t.parent = nil })
+	q := []*Tile{start}
+	start.parent = start
+	for len(q) > 0 {
+		t := q[0]
+		q = q[1:] // take first tile off front of queue
+		if t == dst {
+			return
+		}
+		for _, d := range ALL_DIRECTIONS {
+			tn := t.neighbour(d)
+			if tn != nil && !t.isWall(d) && tn.parent == nil {
+				tn.parent = t
+				q = append(q, tn)
+			}
+		}
+	}
+	// if puck has walled a ghost in, then a path will not be found
+	// log.Println("Grid.BFS: path not found")
+}
+
+func (g *Grid) findTileTowards(src, dst *Tile) *Tile {
+	g.BFS(src, dst)
+	for dst != nil && dst.parent != src {
+		dst = dst.parent
+	}
+	return dst
 }
 
 // func (g *Grid) removeRandomWall() {
@@ -299,7 +332,7 @@ func (g *Grid) visitTiles() {
 		t := q[0]
 		t.visited = true
 		q = q[1:] // take first tile off front of queue
-		for d := 0; d < 4; d++ {
+		for _, d := range ALL_DIRECTIONS {
 			if t.isWall(d) {
 				continue
 			}
@@ -338,6 +371,14 @@ func (g *Grid) getMinimap(screen *ebiten.Image) *ebiten.Image {
 		dc.DrawCircle(x, y, 1)
 	}
 	dc.SetRGB(1, 1, 1)
+	dc.Fill()
+
+	for _, m := range g.meanies {
+		x := util.MapValue(m.worldX+halfTileSize, 0, worldWidth, 0, mapWidth)
+		y := util.MapValue(m.worldY+halfTileSize, 0, worldHeight, 0, mapHeight)
+		dc.DrawCircle(x, y, 1)
+	}
+	dc.SetRGB(0, 0, 0)
 	dc.Fill()
 
 	{
@@ -401,6 +442,9 @@ func (g *Grid) Update() error {
 			GSM.Switch(NewCutscene())
 		}
 	}
+	for _, m := range g.meanies {
+		m.Update()
+	}
 
 	g.puck.Update()
 
@@ -429,6 +473,10 @@ func (g *Grid) Draw(screen *ebiten.Image) {
 
 	for _, gh := range g.ghosts {
 		gh.Draw(screen)
+	}
+
+	for _, m := range g.meanies {
+		m.Draw(screen)
 	}
 
 	g.puck.Draw(screen)

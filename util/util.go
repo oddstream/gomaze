@@ -1,5 +1,3 @@
-// Copyright ©️ 2021 oddstream.games
-
 package util
 
 import (
@@ -69,29 +67,6 @@ func MapValue(value, fromMin, fromMax, toMin, toMax float64) float64 {
 // 		}
 // 	}
 // }
-
-// Forward returns the direction (0-3)
-func Forward(dir int) int {
-	return dir
-}
-
-// Backward returns the direction (0-3)
-func Backward(dir int) int {
-	d := [4]int{2, 3, 0, 1}
-	return d[dir]
-}
-
-// Leftward returns the direction (0-3)
-func Leftward(dir int) int {
-	d := [4]int{3, 0, 1, 2}
-	return d[dir]
-}
-
-// Rightward returns the direction (0-3)
-func Rightward(dir int) int {
-	d := [4]int{1, 2, 3, 0}
-	return d[dir]
-}
 
 func sign(p1, p2, p3 image.Point) int {
 	return (p1.X-p3.X)*(p2.Y-p3.Y) - (p2.X-p3.X)*(p1.Y-p3.Y)

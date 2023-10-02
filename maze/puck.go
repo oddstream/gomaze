@@ -1,5 +1,3 @@
-// Copyright ©️ 2021 oddstream.games
-
 package maze
 
 import (
@@ -18,7 +16,7 @@ type Puck struct {
 	dest                   *Tile   // tile we are lerping to
 	srcX, srcY, dstX, dstY float64 // positions for lerp
 	lerpstep               float64
-	puckImage              *ebiten.Image
+	img                    *ebiten.Image
 	worldX, worldY         float64
 	col                    color.RGBA
 	ball                   *Ball
@@ -40,15 +38,15 @@ func (p *Puck) createImage() {
 	dc.DrawCircle(float64(TileSize/2), float64(TileSize/2), float64(TileSize/3))
 	dc.Fill()
 	dc.Stroke()
-	p.puckImage = ebiten.NewImageFromImage(dc.Image())
+	p.img = ebiten.NewImageFromImage(dc.Image())
 }
 
 // SetCamera so that puck is at the center of the screen
 func (p *Puck) SetCamera() {
 	w, h := WindowWidth, WindowHeight // can't use ebiten.WindowSize(), returns 0,0 on WASM
 	// sx, sy := p.puckImage.Size()
-	sx := p.puckImage.Bounds().Dx()
-	sy := p.puckImage.Bounds().Dy()
+	sx := p.img.Bounds().Dx()
+	sy := p.img.Bounds().Dy()
 	CameraX = float64(w/2-sx/2) - p.worldX
 	CameraY = float64(h/2-sy/2) - p.worldY
 }
@@ -63,39 +61,11 @@ func (p *Puck) ThrowBallTo(targ *Tile) {
 		p.dest = nil
 	}
 
-	found := false
-	q := []*Tile{p.tile}
-	p.tile.parent = p.tile
-	for len(q) > 0 {
-		t := q[0]
-		q = q[1:] // take first tile off front of queue
-		// println("pop", t.X, t.Y, "len now", len(q))
-		if t == targ {
-			found = true
-			for path := t; path != p.tile; path = path.parent {
-				path.marked = true
-			}
-			break
-		}
-		for _, d := range []int{0, 1, 2, 3} {
-			if t.isWall(d) {
-				continue
-			}
-			tn := t.neighbour(d)
-			if tn == nil {
-				log.Fatal("open unwalled edge found in Puck BFS")
-			}
-			if tn.parent == nil {
-				tn.parent = t
-				q = append(q, tn)
-				// println("push", tn.X, tn.Y, "len now", len(q))
-			}
-		}
+	TheGrid.BFS(p.tile, targ)
+	for t := targ; t != nil && t != p.tile; t = t.parent {
+		t.marked = true
 	}
-
-	if found {
-		p.ball.StartThrow(targ)
-	}
+	p.ball.StartThrow(targ)
 }
 
 // String representation of puck
@@ -115,7 +85,7 @@ func (p *Puck) Update() error {
 
 	if p.dest == nil {
 		// if any of the neighbours are marked, move there
-		for d := 0; d < 4; d++ {
+		for _, d := range ALL_DIRECTIONS {
 			if p.tile.isWall(d) {
 				continue
 			}
@@ -153,7 +123,7 @@ func (p *Puck) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(p.worldX, p.worldY)
 	op.GeoM.Translate(CameraX, CameraY)
-	screen.DrawImage(p.puckImage, op)
+	screen.DrawImage(p.img, op)
 	if p.tile != p.ball.tile {
 		p.ball.Draw(screen)
 	}

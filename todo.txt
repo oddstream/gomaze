@@ -24,6 +24,13 @@ Single tap (no dragging, long taps, double taps)
 
 TODO
 ====
+[ ] black meanies
+	start at corners of maze
+	one per level to a maximum of four
+	calculate path to puck
+	path is recalculated when dest reached
+	level restarts if meanie on puck tile
+
 [ ] multiple pucks, red green blue yellow &c
 	select grid.activePuck by tapping on an inactive one
 	only grid.activePuck can move walls
